@@ -16,7 +16,7 @@ export const srsMachine = createMachine({
       on: {
         START_STUDY: { target: 'studying', guard: ({ context: c }) => (c.dueCards?.length ?? 0) > 0 },
         OPEN_GENERATE: 'generating', OPEN_CONFIG: 'configuring',
-        OPEN_STATS: 'stats', OPEN_TOPICS: 'topics', REFRESH: 'loading'
+        OPEN_STATS: 'stats', OPEN_TOPICS: 'topics', OPEN_CONVERSE: 'conversing', REFRESH: 'loading'
       }
     },
     studying: {
@@ -54,6 +54,7 @@ export const srsMachine = createMachine({
     configuring: { on: { SAVE_CONFIG: 'loading', BACK: 'dashboard' } },
     stats: { on: { BACK: 'dashboard' } },
     topics: { on: { BACK: 'dashboard' } },
+    conversing: { on: { BACK: 'dashboard' } },
     error: { on: { RETRY: 'loading' } }
   }
 });

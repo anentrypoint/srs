@@ -6,6 +6,7 @@ import { Generator } from './views/generator.jsx';
 import { Config } from './views/config.jsx';
 import { Stats } from './views/stats.jsx';
 import { Topics } from './views/topics.jsx';
+import { Converse } from './views/converse.jsx';
 
 const root = document.getElementById('app');
 const actor = createSRSActor();
@@ -22,6 +23,7 @@ function render(state) {
   else if (state.matches('configuring')) view = <Config {...props} />;
   else if (state.matches('stats'))       view = <Stats {...props} />;
   else if (state.matches('topics'))      view = <Topics {...props} />;
+  else if (state.matches('conversing'))  view = <Converse {...props} />;
   else                                   view = <Dashboard {...props} />;
 
   webjsx.applyDiff(root, <div class="min-h-screen bg-base-100 text-base-content">{view}</div>);

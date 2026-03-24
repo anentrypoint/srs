@@ -70,13 +70,19 @@ export function Dashboard({ state, send }) {
           </div>
         )}
 
+        <div class="card p-3 flex items-center justify-between">
+          <span class="text-sm text-content2">Syllabus coverage</span>
+          <span ref={el => { fetch('/api/validate').then(r=>r.json()).then(d=>{ if(el) el.textContent=d.summary.coveredTopics+'/'+d.summary.totalTopics+' topics ('+d.summary.coveragePercent+'%)'; }).catch(()=>{}) }} class="text-sm font-mono text-content2">loading...</span>
+        </div>
+
         <div class="flex flex-wrap gap-3 pt-2">
           <button
             class={'btn btn-lg ' + (due > 0 ? 'btn-primary' : 'btn-ghost btn-disabled')}
             onclick={() => due > 0 && send({ type: 'START_STUDY' })}>
-            {due > 0 ? 'Study Now — ' + due + ' card' + (due === 1 ? '' : 's') : 'No Cards Due'}
+            {due > 0 ? 'Study Now \u2014 ' + due + ' card' + (due === 1 ? '' : 's') : 'No Cards Due'}
           </button>
           <button class="btn btn-secondary" onclick={() => send({ type: 'OPEN_GENERATE' })}>Generate</button>
+          <button class="btn btn-accent" onclick={() => send({ type: 'OPEN_CONVERSE' })}>Daily Chat</button>
           <div class="flex gap-2 ml-auto">
             {[['Stats','OPEN_STATS'],['Topics','OPEN_TOPICS'],['Config','OPEN_CONFIG']].map(([l,e]) => (
               <button class="btn btn-ghost btn-sm" onclick={() => send({ type: e })}>{l}</button>

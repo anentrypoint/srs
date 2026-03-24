@@ -50,7 +50,7 @@ async function fetch(req: Request): Promise<Response> {
 
 console.log(`Starting busybase...`);
 await startDB(DATA_DIR);
-await importJSONToTables(DATA_DIR);
+try { await importJSONToTables(DATA_DIR); } catch {}
 console.log(`SRS GUI ready → http://localhost:${PORT}`);
 
 const server = Bun.serve({ port: PORT, fetch });

@@ -6,6 +6,8 @@ import { getDueCards, updateCard, getScheduleStats } from '../src/scheduler/inde
 import { generateCardsForTopic } from '../src/cards/generator.js';
 import { generateDailyPlan } from '../src/daily/planner.js';
 import { SRSProtocol } from '../src/acp/index.js';
+import { validateCoverage } from './validate.ts';
+import { converseStart, converseTurn, converseGet } from './converse.ts';
 
 const wantsMsgpack = (req: Request) => req.headers.get('accept')?.includes('application/x-msgpack');
 
@@ -91,6 +93,33 @@ export async function handleAPI(req: Request, path: string): Promise<Response | 
     const score = extracted?.score ?? 3;
     updateCard(card.id, score);
     return respond(req, { score, feedback: extracted?.feedback ?? result.text });
+  }
+
+  if (path === '/api/validate' && method === 'GET') {
+    try {
+      let cards: any[] = [];
+      try { const { data } = await db().from('cards').select('*'); cards = data ?? []; } catch {}
+      return respond(req, await validateCoverage(cards));
+    } catch (e: any) { return respond(req, { error: e.message }, 500); }
+  }
+
+  if (path === '/api/converse' && method === 'GET') {
+    return respond(req, converseGet());
+  }
+
+  if (path === '/api/converse/start' && method === 'POST') {
+    try {
+      let topicIds: string[] = [];
+      try { const { data: cards } = await db().from('cards').select('id,topicId'); topicIds = (cards ?? []).map((c: any) => c.topicId); } catch {}
+      return respond(req, await converseStart(topicIds));
+    } catch (e: any) { return respond(req, { error: e.message }, 500); }
+  }
+
+  if (path === '/api/converse/turn' && method === 'POST') {
+    try {
+      const { message } = await body(req);
+      return respond(req, await converseTurn(message));
+    } catch (e: any) { return respond(req, { error: e.message }, 500); }
   }
 
   return null;
