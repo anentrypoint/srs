@@ -1,64 +1,55 @@
 import { SRSProtocol } from '../acp/index.js';
 import { loadConfig, deriveConfig } from '../config.js';
+import { activeSyllabus } from '../syllabus/loader.js';
 import { getDueCards, getScheduleStats } from '../scheduler/index.js';
 import { loadCards } from '../cards/store.js';
-import topics from '../cards/topics.json' with { type: 'json' };
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 const PLAN_PATH = join(process.cwd(), 'data', 'daily-plan.json');
 
-function groupByDiscipline(cardIds, allCards) {
+function groupCards(cardIds, allCards, groupByField) {
   const map = {};
+  const topics = activeSyllabus().loadTopics();
   for (const id of cardIds) {
     const card = allCards.find(c => c.id === id);
     if (!card) continue;
     const topic = topics.find(t => t.id === card.topicId);
-    const disc = topic?.discipline ?? 'Unknown';
-    if (!map[disc]) map[disc] = [];
-    map[disc].push(card);
+    const key = topic?.[groupByField] ?? card.topicId;
+    (map[key] ??= []).push(card);
   }
   return map;
 }
 
 export async function generateDailyPlan() {
+  const s = activeSyllabus();
   const cfg = deriveConfig(loadConfig());
   const allCards = loadCards();
-  const allIds = allCards.map(c => c.id);
-  const dueIds = getDueCards(allIds);
-  const stats = getScheduleStats(allIds);
-  const grouped = groupByDiscipline(dueIds, allCards);
+  const dueIds = getDueCards(allCards.map(c => c.id));
+  const stats = getScheduleStats(allCards.map(c => c.id));
 
   if (dueIds.length === 0) {
     return { date: new Date().toISOString().slice(0, 10), blocks: [], rationale: 'No cards due today — all up to date!', stats };
   }
 
-  const disciplineSummary = Object.entries(grouped).map(([d, cards]) =>
-    `${d}: ${cards.length} cards`).join(', ');
+  const grouped = groupCards(dueIds, allCards, s.groupByField);
+  const groupLabel = s.groupByField;
+  const groupSummary = Object.entries(grouped).map(([k, cs]) => `${k}: ${cs.length} cards`).join(', ');
+  const efRange = cfg.efCeiling - 1.3;
+  const gradeProgress = Math.round(Math.max(0, Math.min(100, (stats.avgEaseFactor - 1.3) / efRange * 100)));
 
-  const acp = new SRSProtocol(
-    'You are a medical education expert. Analyze the student study data and generate a personalized daily study plan.',
-    [{ cli: cfg.preferredCLI }, { cli: cfg.fallbackCLI }]
-  );
-
-  const prompt = `Today's study data:
-- Due cards: ${dueIds.length} across disciplines: ${disciplineSummary}
-- Days remaining until exam: ${cfg.daysRemaining} (effective: ${cfg.effectiveDays})
-- Target grade: ${cfg.targetGrade} (MCC scale 300-600)
-- Average ease factor: ${stats.avgEaseFactor.toFixed(2)} (below 2.0 = struggling)
-- Average last score: ${stats.avgLastScore.toFixed(2)} (out of 5)
-- Daily study budget: ${cfg.dailyStudyMinutes} minutes
-
-Generate a study plan JSON with:
-- blocks: array of {discipline, cardCount, estimatedMinutes, priority, rationale}
-- rationale: one paragraph explaining WHY these topics today, connecting to exam performance
-- gradeProgress: estimated % toward target grade based on avg ease factor
-- recommendation: urgent action if days < 14 or avgScore < 2.5
-
-Output valid JSON only.`;
+  const acp = new SRSProtocol(s.promptTemplates.plannerSystem, [{ cli: cfg.preferredCLI }, { cli: cfg.fallbackCLI }]);
+  const prompt = s.interpolate('planner', {
+    dueCount: dueIds.length, groupLabel, groupSummary,
+    daysRemaining: cfg.daysRemaining, effectiveDays: cfg.effectiveDays,
+    targetGrade: cfg.targetGrade, gradeScaleLabel: s.gradeScaleLabel,
+    avgEF: stats.avgEaseFactor.toFixed(2), avgScore: stats.avgLastScore.toFixed(2),
+    dailyMinutes: cfg.dailyStudyMinutes,
+  });
 
   const result = await acp.processLoop(prompt);
-  const plan = acp.extractJSON(result) ?? { blocks: Object.entries(grouped).map(([d, c]) => ({ discipline: d, cardCount: c.length, estimatedMinutes: Math.ceil(c.length * 2.5), priority: 1, rationale: `${c.length} due cards` })), rationale: result.text, gradeProgress: Math.round((stats.avgEaseFactor - 1.3) / (2.5 - 1.3) * 100) };
+  const fallbackBlocks = Object.entries(grouped).map(([k, cs]) => ({ [groupLabel]: k, cardCount: cs.length, estimatedMinutes: Math.ceil(cs.length * 2.5), priority: 1, rationale: `${cs.length} due cards` }));
+  const plan = acp.extractJSON(result) ?? { blocks: fallbackBlocks, rationale: result.text, gradeProgress };
 
   const output = { date: new Date().toISOString().slice(0, 10), dueIds, stats, ...plan };
   const dir = join(process.cwd(), 'data');

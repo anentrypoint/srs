@@ -1,0 +1,56 @@
+{
+  "name": "mccqe1",
+  "label": "MCCQE1",
+  "gradeMap": {
+    "pass": 439,
+    "good": 500,
+    "excellent": 540
+  },
+  "gradeRange": [
+    300,
+    600
+  ],
+  "gradeTiers": [
+    {
+      "threshold": 540,
+      "minEaseFactor": 2.5
+    },
+    {
+      "threshold": 500,
+      "minEaseFactor": 2.2
+    },
+    {
+      "threshold": 0,
+      "minEaseFactor": 1.8
+    }
+  ],
+  "defaults": {
+    "targetGrade": 439,
+    "headroomDays": 7,
+    "dailyStudyMinutes": 60
+  },
+  "groupByField": "discipline",
+  "gradeScaleLabel": "MCC scale 300-600",
+  "topicsFile": "topics.json",
+  "cardExtras": [
+    {
+      "field": "bloomLevel",
+      "type": "string",
+      "description": "bloomLevel: one of recall/apply/analyze"
+    },
+    {
+      "field": "explanation",
+      "type": "string",
+      "description": "explanation: 2-3 sentence explanation linking to Canadian clinical guidelines"
+    }
+  ],
+  "promptTemplates": {
+    "generatorSystem": "You are an expert Canadian medical educator creating MCCQE1 exam preparation flashcards.",
+    "generator": "Generate ${count} MCCQE1 flashcards for the topic: \"${topicName}\" (${groupValue}).\n\nEach card must be a JSON object with:\n- question: clinical vignette or direct question (string)\n- answer: concise correct answer (string)\n- difficulty: 1-5 (1=easy recall, 5=hard analysis)\n- tags: array of relevant tags\n${extrasDesc}\n\nOutput ONLY a JSON array of ${count} card objects. No preamble, no trailing text.",
+    "plannerSystem": "You are a medical education expert. Analyze the student study data and generate a personalized daily study plan.",
+    "planner": "Today's study data:\n- Due cards: ${dueCount} across ${groupLabel}s: ${groupSummary}\n- Days remaining until exam: ${daysRemaining} (effective: ${effectiveDays})\n- Target grade: ${targetGrade} (${gradeScaleLabel})\n- Average ease factor: ${avgEF} (below 2.0 = struggling)\n- Average last score: ${avgScore} (out of 5)\n- Daily study budget: ${dailyMinutes} minutes\n\nGenerate a study plan JSON with:\n- blocks: array of {${groupLabel}, cardCount, estimatedMinutes, priority, rationale}\n- rationale: one paragraph explaining WHY these topics today, connecting to exam performance\n- gradeProgress: estimated % toward target grade based on avg ease factor\n- recommendation: urgent action if days < 14 or avgScore < 2.5\n\nOutput valid JSON only.",
+    "sessionCoach": "You are a ${label} exam coach helping a student prepare. You have been observing their session.",
+    "scoreAnswer": "Score this answer on the SM-2 scale (0-5):\nCard question: ${question}\nCorrect answer: ${answer}\nExplanation: ${explanation}\nStudent's answer: ${userAnswer}\n\nSM-2 scoring: 5=perfect, 4=correct with hesitation, 3=correct with difficulty, 2=incorrect but remembered, 1=incorrect, 0=blank/wrong.\n\nRespond with JSON: {\"score\": <0-5>, \"feedback\": \"<one sentence>\"}",
+    "sessionSummary": "After this session, student scored avg ${avgScore}/5. Weak in: ${weakTopics}. Days to exam: ${daysRemaining}. Target grade: ${targetGrade}. Give 2-sentence actionable advice."
+  }
+}
