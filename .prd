@@ -1,1 +1,130 @@
-[]
+[
+  {
+    "id": "gui-deps",
+    "subject": "Install GUI dependencies and create gui/ scaffold in srs project",
+    "status": "pending",
+    "description": "Add to package.json: webjsx, xstate, msgpackr, rippleui, tailwindcss, busybase. Create gui/ directory structure: gui/server.ts (Bun HTTP server), gui/client/ (frontend), gui/client/index.html, gui/client/app.jsx (webjsx entry), gui/client/machines/ (XState), gui/client/views/ (webjsx components). Add bun scripts: 'gui' to start busybase+gui server.",
+    "blocking": [
+      "busybase-migration",
+      "gui-server",
+      "gui-client-shell"
+    ],
+    "blockedBy": [],
+    "effort": "small",
+    "category": "infra",
+    "acceptance": [
+      "bun install completes with webjsx, xstate, msgpackr, rippleui, tailwindcss, busybase in package.json",
+      "gui/ directory structure exists",
+      "bun run gui starts without crash"
+    ],
+    "edge_cases": [
+      "bun vs node module resolution differences for existing src/ modules"
+    ]
+  },
+  {
+    "id": "busybase-migration",
+    "subject": "Migrate card-states.json and cards.json storage to busybase tables, keep JSON files as fallback",
+    "status": "pending",
+    "description": "Create gui/db.ts: starts busybase server inline via Bun.spawn('bunx busybase serve'), initializes BB client at localhost:54321 with key 'local'. Migrate: cards table (all card fields), card_states table (cardId, easeFactor, interval, repetitions, dueDate, lastScore), daily_plans table. Adapter pattern: src/cards/store.js and src/scheduler/index.js import from gui/db-adapter.js which reads from busybase when running in GUI mode, falls back to JSON files in CLI mode. Detection: process.env.SRS_GUI=1.",
+    "blocking": [
+      "gui-server"
+    ],
+    "blockedBy": [
+      "gui-deps"
+    ],
+    "effort": "medium",
+    "category": "infra",
+    "acceptance": [
+      "busybase server starts on port 54321 when GUI mode",
+      "cards inserted via BB client are queryable",
+      "card_states updated via BB client persist across restarts",
+      "CLI mode (no SRS_GUI) still uses JSON files unchanged",
+      "existing card data in data/cards.json imported into busybase on first run"
+    ],
+    "edge_cases": [
+      "busybase port conflict — try 54321+1",
+      "first-run migration from existing JSON files",
+      "busybase not yet seeded — return empty array not error"
+    ]
+  },
+  {
+    "id": "gui-server",
+    "subject": "Bun HTTP server serving API routes and static frontend assets",
+    "status": "pending",
+    "description": "gui/server.ts: Bun.serve() on port 3000. Routes: GET / → serve gui/client/index.html, GET /assets/* → static files, GET /api/config → loadConfig()+deriveConfig(), POST /api/config → setConfigKey(), GET /api/syllabus → listSyllabi()+activeSyllabus(), GET /api/topics → syllabus.loadTopics(), GET /api/cards → loadCards() via db adapter, GET /api/stats → getScheduleStats(), GET /api/due → getDueCards(), GET /api/plan → generateDailyPlan() (cached), POST /api/generate → generateCardsForTopic(topicId), POST /api/session/score → scoreAnswer via SRSProtocol, GET /api/session/next → next due card. msgpackr: accept application/x-msgpack, respond with msgpack when requested. All JSON otherwise.",
+    "blocking": [
+      "gui-client-shell"
+    ],
+    "blockedBy": [
+      "gui-deps",
+      "busybase-migration"
+    ],
+    "effort": "medium",
+    "category": "feature",
+    "acceptance": [
+      "GET /api/config returns derived config JSON",
+      "GET /api/topics returns 78 topics",
+      "GET /api/stats returns schedule stats",
+      "POST /api/config updates config.json",
+      "GET / serves index.html",
+      "server starts with SRS_GUI=1 bun run gui/server.ts"
+    ],
+    "edge_cases": [
+      "CORS for local dev",
+      "generate route can be long-running — stream progress via SSE",
+      "score route calls opencode/kilo — timeout handling"
+    ]
+  },
+  {
+    "id": "gui-client-shell",
+    "subject": "webjsx+XState client shell: index.html, app entry, state machine, Tailwind+RippleUI wired",
+    "status": "pending",
+    "description": "gui/client/index.html: loads Tailwind CSS (CDN or bundled), imports app.js as ESM module. gui/client/app.js: XState machine with states: idle→dashboard, dashboard→studying|generating|configuring, studying→scoring→reviewing→dashboard. webjsx applyDiff renders into #app. Tailwind dark theme. No bundler — Bun serves .jsx files transpiled on-the-fly via Content-Type text/javascript. gui/client/machines/srs.js: XState createMachine for full SRS flow. gui/client/api.js: fetch wrapper using msgpackr when supported.",
+    "blocking": [
+      "gui-views"
+    ],
+    "blockedBy": [
+      "gui-server"
+    ],
+    "effort": "medium",
+    "category": "feature",
+    "acceptance": [
+      "http://localhost:3000 loads without JS errors",
+      "XState machine starts in idle state, transitions to dashboard on LOAD",
+      "applyDiff renders initial dashboard shell",
+      "Tailwind classes apply correctly",
+      "RippleUI btn, card components render"
+    ],
+    "edge_cases": [
+      "Bun JSX transpilation of .jsx files served as JS",
+      "XState snapshot serialization to localStorage for hot reload"
+    ]
+  },
+  {
+    "id": "gui-views",
+    "subject": "All GUI views: Dashboard, Study Session, Card Generator, Config, Stats, Topics, Syllabus",
+    "status": "pending",
+    "description": "gui/client/views/: dashboard.jsx (due count, grade progress bar, today's plan rationale, quick-start study button), session.jsx (card question display, answer input, score display, progress through session), generator.jsx (topic picker grouped by syllabus.groupByField, generate button, progress SSE stream), config.jsx (examDate picker, targetGrade select from syllabus.gradeMap aliases, headroomDays, dailyStudyMinutes, preferredCLI, syllabus switcher), stats.jsx (progress bar toward target grade, EF chart, due cards over time), topics.jsx (grouped topic list with card counts), syllabus.jsx (active syllabus, switch button). All views use webjsx JSX + applyDiff. RippleUI components throughout.",
+    "blocking": [],
+    "blockedBy": [
+      "gui-client-shell"
+    ],
+    "effort": "large",
+    "category": "feature",
+    "acceptance": [
+      "dashboard shows due card count and grade progress",
+      "study session: presents card, accepts answer, shows AI score+feedback, advances to next",
+      "generator: topic list loads, clicking generate POSTs /api/generate with SSE progress",
+      "config: all fields render with current values, save updates server",
+      "stats: grade progress bar renders with correct %",
+      "topics: all 78 topics listed grouped by discipline",
+      "syllabus: active shown, switch works"
+    ],
+    "edge_cases": [
+      "session with 0 due cards — redirect to dashboard",
+      "generate in progress — disable button, show spinner",
+      "AI scoring takes >30s — show waiting indicator",
+      "mobile layout — RippleUI responsive"
+    ]
+  }
+]
