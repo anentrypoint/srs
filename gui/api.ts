@@ -38,20 +38,24 @@ export async function handleAPI(req: Request, path: string): Promise<Response | 
   if (path === '/api/topics' && method === 'GET') return respond(req, activeSyllabus().loadTopics());
 
   if (path === '/api/cards' && method === 'GET') {
-    const { data } = await db().from('cards').select('*');
-    return respond(req, data ?? []);
+    try { const { data } = await db().from('cards').select('*'); return respond(req, data ?? []); }
+    catch { return respond(req, []); }
   }
 
   if (path === '/api/stats' && method === 'GET') {
-    const { data: cards } = await db().from('cards').select('id');
-    const ids = (cards ?? []).map((c: any) => c.id);
-    return respond(req, { ...getScheduleStats(ids), dueCount: getDueCards(ids).length });
+    try {
+      const { data: cards } = await db().from('cards').select('id');
+      const ids = (cards ?? []).map((c: any) => c.id);
+      return respond(req, { ...getScheduleStats(ids), dueCount: getDueCards(ids).length });
+    } catch { return respond(req, { total: 0, dueCount: 0, avgEaseFactor: 1.3, avgLastScore: null }); }
   }
 
   if (path === '/api/due' && method === 'GET') {
-    const { data: cards } = await db().from('cards').select('*');
-    const ids = getDueCards((cards ?? []).map((c: any) => c.id));
-    return respond(req, (cards ?? []).filter((c: any) => ids.includes(c.id)));
+    try {
+      const { data: cards } = await db().from('cards').select('*');
+      const ids = getDueCards((cards ?? []).map((c: any) => c.id));
+      return respond(req, (cards ?? []).filter((c: any) => ids.includes(c.id)));
+    } catch { return respond(req, []); }
   }
 
   if (path === '/api/plan' && method === 'GET') {
@@ -67,8 +71,9 @@ export async function handleAPI(req: Request, path: string): Promise<Response | 
     (async () => {
       try {
         const r = await generateCardsForTopic(topicId, count ?? 8);
-        const { data: cards } = await db().from('cards').select('*');
-        await writer.write(enc({ done: true, generated: r.generated, total: cards?.length ?? 0 }));
+        let total = 0;
+        try { const { data: cards } = await db().from('cards').select('*'); total = cards?.length ?? 0; } catch {}
+        await writer.write(enc({ done: true, generated: r.generated, total }));
       } catch (e: any) { await writer.write(enc({ error: e.message })); }
       finally { writer.close(); }
     })();

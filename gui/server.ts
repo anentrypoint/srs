@@ -11,7 +11,7 @@ const transpiler = new Bun.Transpiler({
   tsconfig: JSON.stringify({ compilerOptions: { jsxFactory: 'webjsx.createElement', jsxFragmentFactory: 'webjsx.Fragment', jsx: 'react' } }),
 });
 
-const MIME: Record<string, string> = { '.js': 'text/javascript', '.jsx': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
+const MIME: Record<string, string> = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.jsx': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
 
 async function serveStatic(filePath: string): Promise<Response | null> {
   const file = Bun.file(filePath);
