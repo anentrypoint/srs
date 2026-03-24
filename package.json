@@ -1,0 +1,11 @@
+{
+  "name": "srs-mccqe1",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "srs": "./src/cli/index.js"
+  },
+  "dependencies": {
+    "acpreact": "file:../acpreact"
+  }
+}

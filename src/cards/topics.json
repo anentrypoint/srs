@@ -1,0 +1,1154 @@
+[
+  {
+    "id": "card-acs",
+    "name": "Acute Coronary Syndromes",
+    "discipline": "Cardiology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.9,
+    "examFrequency": 0.08
+  },
+  {
+    "id": "card-hf",
+    "name": "Heart Failure",
+    "discipline": "Cardiology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "card-arrhythmia",
+    "name": "Arrhythmias & ECG Interpretation",
+    "discipline": "Cardiology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.9,
+    "examFrequency": 0.07
+  },
+  {
+    "id": "card-htn",
+    "name": "Hypertension",
+    "discipline": "Cardiology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.07
+  },
+  {
+    "id": "card-valve",
+    "name": "Valvular Heart Disease",
+    "discipline": "Cardiology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "resp-asthma",
+    "name": "Asthma",
+    "discipline": "Respirology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "resp-copd",
+    "name": "COPD & Emphysema",
+    "discipline": "Respirology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "resp-pneumonia",
+    "name": "Pneumonia & Lung Infections",
+    "discipline": "Respirology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "resp-pe",
+    "name": "Pulmonary Embolism & DVT",
+    "discipline": "Respirology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "resp-sarcoid",
+    "name": "Interstitial Lung Disease & Sarcoidosis",
+    "discipline": "Respirology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.03
+  },
+  {
+    "id": "gi-ibd",
+    "name": "Inflammatory Bowel Disease",
+    "discipline": "Gastroenterology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Complex"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "gi-liver",
+    "name": "Liver Disease & Cirrhosis",
+    "discipline": "Gastroenterology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "gi-gerd",
+    "name": "GERD & Peptic Ulcer Disease",
+    "discipline": "Gastroenterology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "gi-panc",
+    "name": "Pancreatitis",
+    "discipline": "Gastroenterology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "gi-colon",
+    "name": "Colorectal Cancer & Screening",
+    "discipline": "Gastroenterology",
+    "axes": [
+      "Assessment",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Prevention",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "neph-aki",
+    "name": "Acute Kidney Injury",
+    "discipline": "Nephrology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "neph-ckd",
+    "name": "Chronic Kidney Disease",
+    "discipline": "Nephrology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "neph-electrolytes",
+    "name": "Electrolyte Disorders",
+    "discipline": "Nephrology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "neph-glom",
+    "name": "Glomerulonephritis & Nephrotic Syndrome",
+    "discipline": "Nephrology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.03
+  },
+  {
+    "id": "endo-dm",
+    "name": "Diabetes Mellitus Management",
+    "discipline": "Endocrinology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.08
+  },
+  {
+    "id": "endo-thyroid",
+    "name": "Thyroid Disorders",
+    "discipline": "Endocrinology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "endo-adrenal",
+    "name": "Adrenal Disorders & Cushing's",
+    "discipline": "Endocrinology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.03
+  },
+  {
+    "id": "endo-osteo",
+    "name": "Osteoporosis & Metabolic Bone Disease",
+    "discipline": "Endocrinology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "id-hiv",
+    "name": "HIV & AIDS",
+    "discipline": "InfectiousDisease",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "id-sepsis",
+    "name": "Sepsis & Septic Shock",
+    "discipline": "InfectiousDisease",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.9,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "id-sti",
+    "name": "Sexually Transmitted Infections",
+    "discipline": "InfectiousDisease",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Prevention",
+      "Acute"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "id-tb",
+    "name": "Tuberculosis",
+    "discipline": "InfectiousDisease",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "id-meningitis",
+    "name": "Meningitis & Encephalitis",
+    "discipline": "InfectiousDisease",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "neuro-stroke",
+    "name": "Stroke & TIA",
+    "discipline": "Neurology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.9,
+    "examFrequency": 0.07
+  },
+  {
+    "id": "neuro-seizure",
+    "name": "Seizures & Epilepsy",
+    "discipline": "Neurology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "neuro-ms",
+    "name": "Multiple Sclerosis & Demyelinating Disease",
+    "discipline": "Neurology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "neuro-dementia",
+    "name": "Dementia & Cognitive Impairment",
+    "discipline": "Neurology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "Communication"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Complex"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "neuro-headache",
+    "name": "Headache Disorders & Migraine",
+    "discipline": "Neurology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "surg-acute-abdomen",
+    "name": "Acute Abdomen & Appendicitis",
+    "discipline": "Surgery",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "surg-trauma",
+    "name": "Trauma & ATLS Principles",
+    "discipline": "Surgery",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "surg-breast",
+    "name": "Breast Disease & Cancer",
+    "discipline": "Surgery",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "surg-periop",
+    "name": "Perioperative Care",
+    "discipline": "Surgery",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "peds-development",
+    "name": "Child Development & Milestones",
+    "discipline": "Pediatrics",
+    "axes": [
+      "Assessment",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "peds-fever",
+    "name": "Fever in Children & Pediatric Infections",
+    "discipline": "Pediatrics",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "peds-neonate",
+    "name": "Neonatal Conditions & Newborn Care",
+    "discipline": "Pediatrics",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Complex"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "peds-asthma",
+    "name": "Pediatric Asthma & Respiratory",
+    "discipline": "Pediatrics",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "peds-vaccines",
+    "name": "Immunization Schedule & Vaccines",
+    "discipline": "Pediatrics",
+    "axes": [
+      "HealthPromotion",
+      "Assessment"
+    ],
+    "careDimensions": [
+      "Prevention"
+    ],
+    "difficultyWeight": 0.6,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "obgyn-obstetric-emerg",
+    "name": "Obstetric Emergencies",
+    "discipline": "ObGyn",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.9,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "obgyn-antenatal",
+    "name": "Antenatal Care & Normal Pregnancy",
+    "discipline": "ObGyn",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "obgyn-gyn",
+    "name": "Gynaecologic Conditions & Cancer",
+    "discipline": "ObGyn",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "obgyn-contraception",
+    "name": "Contraception & Family Planning",
+    "discipline": "ObGyn",
+    "axes": [
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Prevention"
+    ],
+    "difficultyWeight": 0.6,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "psych-mood",
+    "name": "Mood Disorders & Depression",
+    "discipline": "Psychiatry",
+    "axes": [
+      "Assessment",
+      "Management",
+      "Communication"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "psych-psychosis",
+    "name": "Psychosis & Schizophrenia",
+    "discipline": "Psychiatry",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Acute"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "psych-anxiety",
+    "name": "Anxiety & PTSD",
+    "discipline": "Psychiatry",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "psych-substance",
+    "name": "Substance Use Disorders",
+    "discipline": "Psychiatry",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "psych-suicide",
+    "name": "Suicide Risk Assessment",
+    "discipline": "Psychiatry",
+    "axes": [
+      "Assessment",
+      "Communication",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "em-resus",
+    "name": "Resuscitation & Cardiac Arrest",
+    "discipline": "EmergencyMedicine",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.9,
+    "examFrequency": 0.07
+  },
+  {
+    "id": "em-tox",
+    "name": "Toxicology & Overdose",
+    "discipline": "EmergencyMedicine",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "em-anaphylaxis",
+    "name": "Anaphylaxis & Allergic Reactions",
+    "discipline": "EmergencyMedicine",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "ph-screening",
+    "name": "Screening Guidelines & Preventive Care",
+    "discipline": "PublicHealth",
+    "axes": [
+      "HealthPromotion",
+      "Assessment"
+    ],
+    "careDimensions": [
+      "Prevention"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "ph-epidemiology",
+    "name": "Epidemiology & Biostatistics",
+    "discipline": "PublicHealth",
+    "axes": [
+      "Assessment"
+    ],
+    "careDimensions": [
+      "Prevention"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "ph-social-det",
+    "name": "Social Determinants of Health",
+    "discipline": "PublicHealth",
+    "axes": [
+      "HealthPromotion",
+      "Communication"
+    ],
+    "careDimensions": [
+      "Prevention",
+      "Complex"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "ethics-consent",
+    "name": "Informed Consent & Capacity",
+    "discipline": "Ethics",
+    "axes": [
+      "Communication",
+      "Assessment"
+    ],
+    "careDimensions": [
+      "Complex"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "ethics-end-of-life",
+    "name": "End-of-Life Care & MAID",
+    "discipline": "Ethics",
+    "axes": [
+      "Communication",
+      "Management"
+    ],
+    "careDimensions": [
+      "Complex"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "ethics-confidentiality",
+    "name": "Confidentiality & Disclosure",
+    "discipline": "Ethics",
+    "axes": [
+      "Communication"
+    ],
+    "careDimensions": [
+      "Complex"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "fm-preventive",
+    "name": "Preventive Medicine & Health Maintenance",
+    "discipline": "FamilyMedicine",
+    "axes": [
+      "HealthPromotion",
+      "Assessment"
+    ],
+    "careDimensions": [
+      "Prevention"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.06
+  },
+  {
+    "id": "fm-multimorbid",
+    "name": "Multimorbidity & Chronic Disease Management",
+    "discipline": "FamilyMedicine",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Complex"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "fm-geriatrics",
+    "name": "Geriatrics & Elder Care",
+    "discipline": "FamilyMedicine",
+    "axes": [
+      "Assessment",
+      "Management",
+      "Communication"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Complex"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "rheum-ra",
+    "name": "Rheumatoid Arthritis & Autoimmune",
+    "discipline": "Rheumatology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "rheum-osteo",
+    "name": "Osteoarthritis & Gout",
+    "discipline": "Rheumatology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "rheum-lupus",
+    "name": "SLE & Connective Tissue Disease",
+    "discipline": "Rheumatology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Complex"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.03
+  },
+  {
+    "id": "derm-common",
+    "name": "Common Dermatoses & Rashes",
+    "discipline": "Dermatology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "derm-cancer",
+    "name": "Skin Cancer & Melanoma",
+    "discipline": "Dermatology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Prevention",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "hem-anemia",
+    "name": "Anemia & Hemoglobin Disorders",
+    "discipline": "Hematology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "hem-coag",
+    "name": "Coagulation Disorders & Thrombosis",
+    "discipline": "Hematology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.85,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "hem-lymphoma",
+    "name": "Lymphoma & Leukemia",
+    "discipline": "Hematology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Complex"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "ent-ear",
+    "name": "Ear Disorders & Hearing Loss",
+    "discipline": "ENT",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.03
+  },
+  {
+    "id": "ent-urg",
+    "name": "ENT Emergencies",
+    "discipline": "ENT",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.75,
+    "examFrequency": 0.03
+  },
+  {
+    "id": "ophtho-urg",
+    "name": "Ophthalmologic Emergencies",
+    "discipline": "Ophthalmology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.03
+  },
+  {
+    "id": "uro-uti",
+    "name": "UTI & Urinary Tract Disorders",
+    "discipline": "Urology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.65,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "uro-prostate",
+    "name": "Prostate Disease & Urologic Cancer",
+    "discipline": "Urology",
+    "axes": [
+      "Assessment",
+      "Management",
+      "HealthPromotion"
+    ],
+    "careDimensions": [
+      "Chronic",
+      "Prevention"
+    ],
+    "difficultyWeight": 0.7,
+    "examFrequency": 0.04
+  },
+  {
+    "id": "pharm-antimicrobials",
+    "name": "Antimicrobial Pharmacology",
+    "discipline": "Pharmacology",
+    "axes": [
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Chronic"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  },
+  {
+    "id": "pharm-adverse",
+    "name": "Adverse Drug Reactions & Interactions",
+    "discipline": "Pharmacology",
+    "axes": [
+      "Assessment",
+      "Management"
+    ],
+    "careDimensions": [
+      "Acute",
+      "Complex"
+    ],
+    "difficultyWeight": 0.8,
+    "examFrequency": 0.05
+  }
+]
