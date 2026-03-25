@@ -1,1 +1,117 @@
-[]
+[
+  {
+    "id": "pdf-page-split-setup",
+    "subject": "Set up PDF processing infrastructure and determine page count",
+    "status": "pending",
+    "description": "Install required PDF processing libraries (PyPDF2 or pdf2image) and determine the total page count of 'Toronto Notes 2025.pdf' (424MB). Create output directories for pages and text extraction.",
+    "blocking": [
+      "pdf-split-to-images",
+      "pdf-extract-text"
+    ],
+    "blockedBy": [],
+    "effort": "small",
+    "category": "infra",
+    "acceptance": [
+      "PDF processing library successfully installed and tested",
+      "Total page count determined and logged",
+      "Output directories created: ./pdf_pages/images and ./pdf_pages/text"
+    ],
+    "edge_cases": [
+      "PyPDF2 not available - may need to install via pip",
+      "pdf2image requires system dependencies (poppler on Windows)",
+      "424MB file may require memory management considerations",
+      "Path handling for Windows vs Unix paths"
+    ]
+  },
+  {
+    "id": "pdf-split-to-images",
+    "subject": "Split PDF into individual page images (PNG/JPEG)",
+    "status": "pending",
+    "description": "Convert each page of 'Toronto Notes 2025.pdf' to a separate image file with naming convention: page_0001.png, page_0002.png, etc. Store in ./pdf_pages/images/",
+    "blocking": [],
+    "blockedBy": ["pdf-page-split-setup"],
+    "effort": "large",
+    "category": "feature",
+    "acceptance": [
+      "One image file per page created with sequential numbering",
+      "All images stored in ./pdf_pages/images/",
+      "Image format is PNG or JPEG with reasonable quality",
+      "Total image count equals total PDF page count"
+    ],
+    "edge_cases": [
+      "Very large PDF (424MB) - may need batch processing in chunks",
+      "Memory constraints during conversion - implement streaming/batching",
+      "Image resolution/quality trade-offs for large number of pages",
+      "Error recovery if conversion fails mid-batch"
+    ]
+  },
+  {
+    "id": "pdf-extract-text",
+    "subject": "Extract text from each PDF page into individual markdown files",
+    "status": "pending",
+    "description": "Extract text content from each page and save to separate markdown files with naming convention: page_0001.md, page_0002.md, etc. Include page number as header. Store in ./pdf_pages/text/",
+    "blocking": [],
+    "blockedBy": ["pdf-page-split-setup"],
+    "effort": "large",
+    "category": "feature",
+    "acceptance": [
+      "One markdown file per page created with sequential numbering",
+      "Each markdown file contains: page header (# Page 1), extracted text, metadata (page count)",
+      "All markdown files stored in ./pdf_pages/text/",
+      "File count equals total PDF page count",
+      "Text is properly formatted (preserve line breaks, handle special characters)"
+    ],
+    "edge_cases": [
+      "Scanned PDFs with OCR requirements - may have poor text extraction",
+      "Complex layouts - multi-column text, tables, figures",
+      "Special characters, mathematical symbols, or non-ASCII text",
+      "Empty pages or pages with only images",
+      "PDF metadata or watermarks interfering with text extraction"
+    ]
+  },
+  {
+    "id": "pdf-create-index",
+    "subject": "Create master index document linking all pages",
+    "status": "pending",
+    "description": "Generate ./pdf_pages/INDEX.md with table of contents listing all pages with optional preview of first 100 chars of text from each page.",
+    "blocking": [],
+    "blockedBy": [
+      "pdf-split-to-images",
+      "pdf-extract-text"
+    ],
+    "effort": "small",
+    "category": "feature",
+    "acceptance": [
+      "INDEX.md created at ./pdf_pages/INDEX.md",
+      "Each page has entry with link to both image and text files",
+      "Page numbers are accurate",
+      "Index is readable and navigable"
+    ],
+    "edge_cases": [
+      "Very large index (1000+ pages) - performance/readability",
+      "Invalid filenames or missing files - validation needed"
+    ]
+  },
+  {
+    "id": "pdf-processing-script",
+    "subject": "Create reusable PDF processing script",
+    "status": "pending",
+    "description": "Build a Node.js or Python script that orchestrates the entire PDF splitting workflow: page detection → image conversion → text extraction → index generation. Script should be idempotent and resumable.",
+    "blocking": [],
+    "blockedBy": [],
+    "effort": "medium",
+    "category": "feature",
+    "acceptance": [
+      "Script successfully processes entire PDF without intervention",
+      "Script handles errors gracefully and logs progress",
+      "Script can resume from last successful page if interrupted",
+      "Script produces all outputs: images, text files, and index"
+    ],
+    "edge_cases": [
+      "Partial completion - resumable state management",
+      "Dependency availability - graceful fallback or error messages",
+      "Large memory footprint - implement streaming/chunking",
+      "Concurrent processing safety - file locking if needed"
+    ]
+  }
+]
