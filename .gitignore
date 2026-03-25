@@ -12,3 +12,6 @@ busybase_data/
 .aider.chat.history.md
 docs/_app.jsx
 docs/webjsx.js
+pdf_pages/
+eng.traineddata
+*.log
