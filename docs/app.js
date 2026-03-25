@@ -567,7 +567,7 @@ function Loading() {
     class: "spinner"
   }), /* @__PURE__ */ createElement("p", {
     style: "color:var(--text2);font-size:0.875rem;"
-  }, "Loading 2798 cards…")));
+  }, "Loading cards…")));
 }
 function Dashboard() {
   const cfg = loadCfg(), stats = getStats(CARDS), dr = daysLeft(cfg);
@@ -690,7 +690,7 @@ function Dashboard() {
     points: "5 3 19 12 5 21 5 3"
   })), stats.due > 0 ? `Study Now — ${stats.due.toLocaleString()} card${stats.due === 1 ? "" : "s"}` : "All Caught Up"), /* @__PURE__ */ createElement("div", {
     style: "display:flex;gap:8px;margin-left:auto;"
-  }, [["Stats", "stats"], ["Topics", "topics"], ["Config", "config"]].map(([l, v]) => /* @__PURE__ */ createElement("button", {
+  }, [["Prompt", "prompt"], ["Assess", "assess"], ["Stats", "stats"], ["Topics", "topics"], ["Config", "config"]].map(([l, v]) => /* @__PURE__ */ createElement("button", {
     class: "btn-ghost",
     onclick: () => go(v)
   }, l))))));
@@ -1064,8 +1064,268 @@ function Config() {
     class: "label-xs"
   }, "States tracked"))))));
 }
+function Prompt() {
+  const cfg = loadCfg(), due = getDue(CARDS);
+  const dr = daysLeft(cfg);
+  const dailyTarget = Math.ceil(CARDS.length / Math.max(dr, 1));
+  const sessionCards = due.slice(0, Math.min(due.length, 20));
+  const cardsJson = JSON.stringify(sessionCards.map((c) => ({ id: c.id, question: c.question, answer: c.answer, difficulty: c.difficulty, tags: c.tags, bloomLevel: c.bloomLevel, explanation: c.explanation })), null, 2);
+  const studyPlan = `Day ${Math.max(1, 67 - dr)} of 67 | ${dr} days remaining | ${due.length} cards due | Target: ${dailyTarget} cards/day | Session: ${sessionCards.length} cards`;
+  let promptText = "";
+  fetch("clipboard_prompt.md").then((r) => r.text()).then((t) => {
+    promptText = t;
+    render();
+  }).catch(() => {});
+  const filled = (ctx.promptText || promptText || "(Loading prompt template...)").replace("{{STUDY_PLAN}}", studyPlan).replace("{{CARDS_JSON}}", cardsJson);
+  return /* @__PURE__ */ createElement("div", {
+    class: "shell fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "page"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "nav"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:12px;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    onclick: () => go("dashboard")
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /* @__PURE__ */ createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  })), "Back"), /* @__PURE__ */ createElement("span", {
+    class: "title",
+    style: "font-size:1.25rem;"
+  }, "Daily Prompt")), /* @__PURE__ */ createElement("button", {
+    class: "btn-study",
+    style: "padding:0.5rem 1rem;font-size:0.875rem;",
+    onclick: () => {
+      navigator.clipboard.writeText(filled);
+      ctx.copied = true;
+      render();
+    }
+  }, ctx.copied ? "Copied!" : "Copy Prompt")), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1rem;margin-bottom:16px;"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;flex-wrap:wrap;gap:12px;"
+  }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "Cards Due"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.25rem;font-weight:700;color:var(--accent);"
+  }, due.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "Session Size"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.25rem;font-weight:700;"
+  }, sessionCards.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "Days Left"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.25rem;font-weight:700;"
+  }, dr)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "Daily Target"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.25rem;font-weight:700;"
+  }, dailyTarget)))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1.25rem;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:8px;"
+  }, "Clipboard Prompt (paste into your AI agent)"), /* @__PURE__ */ createElement("pre", {
+    style: "font-size:0.75rem;line-height:1.5;color:var(--text2);white-space:pre-wrap;word-break:break-word;max-height:600px;overflow-y:auto;"
+  }, filled))));
+}
+function Assess() {
+  let textareaEl;
+  const doProcess = () => {
+    try {
+      const raw = textareaEl.value;
+      const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/\{[\s\S]*\}/);
+      const json = jsonMatch ? jsonMatch[1] || jsonMatch[0] : raw;
+      const data = JSON.parse(json);
+      const cards = data.cardsReviewed || data.cards || data;
+      if (!Array.isArray(cards) || !cards.length)
+        throw new Error("No cards found");
+      const n = cards.length;
+      const correct = cards.filter((c) => c.score >= 4).length;
+      const avg = cards.reduce((s, c) => s + c.score, 0) / n;
+      go("assess_results", { assessData: { cards, summary: data.sessionSummary || { totalCards: n, correctCount: correct, avgScore: avg, weakAreas: [], strongAreas: [] }, recommendations: data.recommendations || {}, masteryEstimate: data.masteryEstimate || Math.round(correct / n * 100) } });
+    } catch (e) {
+      alert("Invalid JSON: " + e.message);
+    }
+  };
+  if (ctx.assessData)
+    return AssessResults();
+  return /* @__PURE__ */ createElement("div", {
+    class: "shell fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "page"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "nav"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:12px;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    onclick: () => go("dashboard")
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /* @__PURE__ */ createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  })), "Back"), /* @__PURE__ */ createElement("span", {
+    class: "title",
+    style: "font-size:1.25rem;"
+  }, "Assessment Form"))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1.25rem;margin-bottom:16px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:8px;"
+  }, "Paste session JSON from your AI agent"), /* @__PURE__ */ createElement("textarea", {
+    ref: (e) => textareaEl = e,
+    style: "width:100%;height:200px;background:var(--bg-card2);color:var(--text1);border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-family:monospace;font-size:0.8125rem;resize:vertical;",
+    placeholder: "Paste the JSON block from your study session here..."
+  })), /* @__PURE__ */ createElement("button", {
+    class: "btn-study",
+    style: "width:100%;justify-content:center;",
+    onclick: doProcess
+  }, "Process Results")));
+}
+function AssessResults() {
+  const { assessData } = ctx;
+  const { cards, summary, recommendations, masteryEstimate } = assessData;
+  const pct = Math.round(summary.correctCount / summary.totalCards * 100) || masteryEstimate;
+  const doSave = () => {
+    const states = loadStates();
+    cards.forEach((c) => {
+      const prev = states[c.id] || defState();
+      const next = calcSM2(prev, c.score);
+      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: c.score };
+    });
+    saveStates(states);
+    ctx.saved = true;
+    render();
+  };
+  return /* @__PURE__ */ createElement("div", {
+    class: "shell fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "page"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "nav"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:12px;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    onclick: () => {
+      delete ctx.assessData;
+      delete ctx.saved;
+      go("assess");
+    }
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /* @__PURE__ */ createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  })), "Back"), /* @__PURE__ */ createElement("span", {
+    class: "title",
+    style: "font-size:1.25rem;"
+  }, "Results"))), /* @__PURE__ */ createElement("div", {
+    class: "stat-grid",
+    style: "margin-bottom:16px;"
+  }, [
+    { key: "Cards", val: summary.totalCards, hi: false },
+    { key: "Correct", val: summary.correctCount, hi: true },
+    { key: "Avg Score", val: summary.avgScore?.toFixed?.(1) || summary.avgScore, hi: false },
+    { key: "Mastery", val: masteryEstimate + "%", hi: masteryEstimate >= 90 }
+  ].map(({ key, val, hi }) => /* @__PURE__ */ createElement("div", {
+    class: "stat-tile" + (hi ? " hi" : "")
+  }, /* @__PURE__ */ createElement("div", {
+    class: "val"
+  }, String(val)), /* @__PURE__ */ createElement("div", {
+    class: "key"
+  }, key)))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1rem;margin-bottom:16px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:8px;"
+  }, "Mastery Progress"), /* @__PURE__ */ createElement("div", {
+    class: "prog-track"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "prog-fill",
+    style: "width:" + pct + "%"
+  })), /* @__PURE__ */ createElement("div", {
+    style: "text-align:right;font-size:0.75rem;color:var(--text2);margin-top:4px;"
+  }, pct, "% — target 95%")), summary.weakAreas?.length > 0 && /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1rem;margin-bottom:12px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:6px;color:var(--danger);"
+  }, "Weak Areas"), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;flex-wrap:wrap;gap:4px;"
+  }, summary.weakAreas.map((a) => /* @__PURE__ */ createElement("span", {
+    class: "badge-topic",
+    style: "background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);"
+  }, a)))), summary.strongAreas?.length > 0 && /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1rem;margin-bottom:12px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:6px;color:var(--success);"
+  }, "Strong Areas"), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;flex-wrap:wrap;gap:4px;"
+  }, summary.strongAreas.map((a) => /* @__PURE__ */ createElement("span", {
+    class: "badge-topic",
+    style: "background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.3);"
+  }, a)))), recommendations.nextSessionFocus && /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1rem;margin-bottom:16px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:6px;"
+  }, "Next Session"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.875rem;color:var(--text2);"
+  }, recommendations.nextSessionFocus)), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;gap:10px;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn-study" + (ctx.saved ? " disabled" : ""),
+    style: "flex:1;justify-content:center;",
+    onclick: doSave
+  }, ctx.saved ? "Saved to SRS" : "Save to SRS"), /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    onclick: () => go("dashboard")
+  }, "Dashboard"))));
+}
 function render() {
-  const node = view === "loading" ? Loading() : view === "session" || view === "session_complete" ? Session() : view === "stats" ? Stats() : view === "topics" ? Topics() : view === "config" ? Config() : Dashboard();
+  const node = view === "loading" ? Loading() : view === "session" || view === "session_complete" ? Session() : view === "stats" ? Stats() : view === "topics" ? Topics() : view === "config" ? Config() : view === "prompt" ? Prompt() : view === "assess" || view === "assess_results" ? Assess() : Dashboard();
   applyDiff(root, /* @__PURE__ */ createElement("div", null, node));
 }
 render();

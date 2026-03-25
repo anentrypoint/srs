@@ -1,0 +1,362 @@
+[
+  {
+    "question": "What is the hallmark of DKA pathophysiology that makes insulin therapy critical?",
+    "answer": "Insulin is the only way to inhibit gluconeogenesis and ketosis",
+    "explanation": "In DKA, there is absolute insulin deficiency leading to uncontrolled gluconeogenesis and ketone production. Insulin therapy is critical to halt these processes.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["DKA", "Diabetic Ketoacidosis", "Emergency Medicine", "Endocrinology"]
+  },
+  {
+    "question": "What is the contraindications to insulin administration in DKA?",
+    "answer": "Do not give insulin if K+ < 3.3 mmol/L as it will exacerbate hypokalemia",
+    "explanation": "Insulin drives potassium into cells, potentially causing severe hypokalemia. Potassium must be normalized before starting insulin.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["DKA", "Diabetic Ketoacidosis", "Emergency Medicine", "Electrolytes"]
+  },
+  {
+    "question": "What is the recommended insulin infusion rate in DKA?",
+    "answer": "Continuous infusion at 0.05-0.1 U/kg/h",
+    "explanation": "This is the standard starting rate for insulin therapy in DKA, allowing gradual glucose control.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["DKA", "Diabetic Ketoacidosis", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "At what blood glucose level should dextrose be added to IV fluids in DKA management?",
+    "answer": "Once blood glucose < 14 mmol/L",
+    "explanation": "Dextrose is added to prevent hypoglycemia while continuing insulin to resolve ketosis.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["DKA", "Diabetic Ketoacidosis", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "When is bicarbonate therapy indicated in DKA?",
+    "answer": "Only when patient is at risk of shock or death (typically pH < 7.0)",
+    "explanation": "Bicarbonate is not routinely given in DKA due to risk of metabolic alkalosis and paradoxical CNS acidosis.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["DKA", "Diabetic Ketoacidosis", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What is the defining glucose level for Hyperosmolar Hyperglycemic State (HHS)?",
+    "answer": "Extreme hyperglycemia with glucose ≥ 33.3 mmol/L",
+    "explanation": "HHS is characterized by extreme hyperglycemia (typically >33.3 mmol/L) due to relative insulin deficiency.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["HHS", "Hyperosmolar Hyperglycemic State", "Emergency Medicine", "Endocrinology"]
+  },
+  {
+    "question": "How do the clinical features of HHS differ from DKA?",
+    "answer": "HHS has more neurological deficits (delirium, coma, seizures), fewer GI symptoms, and symptoms evolve over days to weeks",
+    "explanation": "HHS typically occurs in older T2DM patients with longer symptom evolution and prominent CNS manifestations due to extreme hyperosmolarity.",
+    "difficulty": 3,
+    "bloomLevel": "analyze",
+    "tags": ["HHS", "Hyperosmolar Hyperglycemic State", "Emergency Medicine", "Differential Diagnosis"]
+  },
+  {
+    "question": "What is the estimated water deficit in HHS?",
+    "answer": "Average 100 cc/kg body weight",
+    "explanation": "Patients with HHS have profound dehydration due to prolonged osmotic diuresis.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["HHS", "Hyperosmolar Hyperglycemic State", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What are expected pH and bicarbonate values in HHS?",
+    "answer": "pH > 7.3 and bicarbonate > 18 mEq/L",
+    "explanation": "Unlike DKA, HHS typically does not have significant metabolic acidosis as there is enough insulin to prevent significant ketosis.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["HHS", "Hyperosmolar Hyperglycemic State", "Emergency Medicine", "Lab Values"]
+  },
+  {
+    "question": "What defines hypoglycemia according to Whipple's triad?",
+    "answer": "Low plasma glucose, symptoms suggestive of hypoglycemia, prompt resolution when glucose administered",
+    "explanation": "Whipple's triad is the diagnostic criterion for true hypoglycemic episodes.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Endocrinology", "Diagnosis"]
+  },
+  {
+    "question": "What are neuroglycopenic symptoms of hypoglycemia?",
+    "answer": "Headaches, confusion, seizures, loss of consciousness, coma",
+    "explanation": "Neuroglycopenic symptoms result from brain glucose deprivation.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Symptoms"]
+  },
+  {
+    "question": "What are autonomic symptoms of hypoglycemia?",
+    "answer": "Diaphoresis, nausea, tremor, hunger, tachycardia, palpitations",
+    "explanation": "Autonomic symptoms result from sympathetic activation due to falling glucose.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Symptoms"]
+  },
+  {
+    "question": "What is the treatment for hypoglycemia when IV access is available?",
+    "answer": "D50W 50 mL IV push",
+    "explanation": "50 mL of 50% dextrose is the standard treatment for adult hypoglycemia.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What is the rule of 50 for pediatric hypoglycemia treatment?",
+    "answer": "1 mL/kg D50W, 2 mL/kg D25W, 5 mL/kg D10W, 10 mL/kg D5W",
+    "explanation": "The rule of 50 provides age-appropriate dextrose concentrations for children.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Pediatrics", "Treatment"]
+  },
+  {
+    "question": "When is glucagon indicated in hypoglycemia management?",
+    "answer": "When IV access and oral replacement are not possible, give glucagon 1-2 mg IM, repeat in 10-20 min",
+    "explanation": "Glucagon is used when intravenous or oral therapy is not feasible.",
+    "difficulty": 2,
+    "bloomLevel": "apply",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "Why is thiamine given in suspected hypoglycemia due to alcohol use disorder?",
+    "answer": "300 mg IM thiamine to prevent Wernicke encephalopathy",
+    "explanation": "Alcoholics are thiamine deficient and glucose administration can trigger Wernicke's encephalopathy.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Alcohol", "Thiamine"]
+  },
+  {
+    "question": "What causes require admission for prolonged monitoring in hypoglycemia?",
+    "answer": "Long-acting insulin or sulfonylurea overdose",
+    "explanation": "These agents have long half-lives and can cause recurrent hypoglycemia requiring monitoring.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypoglycemia", "Emergency Medicine", "Admission"]
+  },
+  {
+    "question": "What are common causes of hypernatremia?",
+    "answer": "Inadequate water intake (elderly/disabled) or inappropriate excretion of water (diuretics, Li, diabetes insipidus)",
+    "explanation": "Hypernatremia results from water deficiency or water loss exceeding sodium loss.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypernatremia", "Electrolytes", "Emergency Medicine", "Nephrology"]
+  },
+  {
+    "question": "What are symptoms of severe hypernatremia (Na+ >158 mmol/L)?",
+    "answer": "Seizures and coma",
+    "explanation": "Severe hypernatremia causes cerebral edema leading to neurological catastrophe.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypernatremia", "Electrolytes", "Emergency Medicine", "Symptoms"]
+  },
+  {
+    "question": "What is the treatment for hypernatremia?",
+    "answer": "Salt restrict and give normal saline until hemodynamically stable, then half-normal saline (0.5 mmol/L/h correction)",
+    "explanation": "Correction must be gradual to prevent cerebral edema from rapid osmolar shifts.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypernatremia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What are the three categories of hyponatremia based on volume status?",
+    "answer": "Hypovolemic (GI, renal, skin, blood loss), Euvolemic (SIADH, adrenal insufficiency, hypothyroid), Hypervolemic (CHF, cirrhosis, nephrotic syndrome)",
+    "explanation": "Determining volume status is critical for appropriate management.",
+    "difficulty": 3,
+    "bloomLevel": "recall",
+    "tags": ["Hyponatremia", "Electrolytes", "Emergency Medicine", "Nephrology"]
+  },
+  {
+    "question": "What is the rate limit for correcting chronic hyponatremia?",
+    "answer": "Limit total rise to 8 mmol/L in 24h (0.25 mmol/L/h maximum)",
+    "explanation": "Rapid correction risks osmotic demyelinating syndrome (ODS).",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hyponatremia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "When is 3% hypertonic saline indicated in hyponatremia?",
+    "answer": "For seizure or coma in severe hyponatremia",
+    "explanation": "Hypertonic saline is reserved for life-threatening cerebral edema.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hyponatremia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What are common causes of hyperkalemia?",
+    "answer": "Rhabdomyolysis, insulin deficiency, metabolic acidosis, renal failure, medications (K-sparing diuretics, ACEI, NSAIDs)",
+    "explanation": "Hyperkalemia results from impaired excretion, potassium shift out of cells, or excess intake.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hyperkalemia", "Electrolytes", "Emergency Medicine", "Nephrology"]
+  },
+  {
+    "question": "What ECG findings are seen in hyperkalemia?",
+    "answer": "Peaked narrow T wave, decreased P wave, prolonged PR interval, widening QRS, sine wave, AV block, VFib, bradycardia",
+    "explanation": "Progressive ECG changes correlate with rising potassium levels.",
+    "difficulty": 3,
+    "bloomLevel": "recall",
+    "tags": ["Hyperkalemia", "Electrolytes", "Emergency Medicine", "ECG"]
+  },
+  {
+    "question": "What is the emergency treatment for hyperkalemia to protect the heart?",
+    "answer": "Calcium gluconate",
+    "explanation": "Calcium gluconate stabilizes cardiac membranes within minutes but does not lower potassium.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hyperkalemia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What treatments shift potassium into cells in hyperkalemia?",
+    "answer": "D50W + insulin, NaHCO3, salbutamol",
+    "explanation": "These agents temporarily shift potassium intracellularly, buying time for definitive treatment.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hyperkalemia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What are definitive treatments to remove potassium in hyperkalemia?",
+    "answer": "Fluids + furosemide, dialysis",
+    "explanation": "These reduce total body potassium levels permanently.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hyperkalemia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What are common causes of hypokalemia?",
+    "answer": "Metabolic alkalosis, diarrhea, insulin, diuretics (except K+-sparing), anorexia, salbutamol",
+    "explanation": "Hypokalemia results from renal or GI losses, or intracellular shifts.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypokalemia", "Electrolytes", "Emergency Medicine", "Nephrology"]
+  },
+  {
+    "question": "What ECG findings are most important in hypokalemia?",
+    "answer": "U waves (most important), flattened/inverted T waves, prolonged QT, depressed ST",
+    "explanation": "U waves are the hallmark ECG finding of hypokalemia.",
+    "difficulty": 3,
+    "bloomLevel": "recall",
+    "tags": ["Hypokalemia", "Electrolytes", "Emergency Medicine", "ECG"]
+  },
+  {
+    "question": "Why might magnesium need to be restored in hypokalemia?",
+    "answer": "Hypomagnesemia impairs potassium correction and can perpetuate hypokalemia",
+    "explanation": "Mg2+ is required for Na+/K+ ATPase function; deficiency prevents effective K+ repletion.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypokalemia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What causes 90% of hypercalcemia cases?",
+    "answer": "Hyperparathyroidism and malignancy",
+    "explanation": "These two conditions account for the vast majority of hypercalcemia.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypercalcemia", "Electrolytes", "Emergency Medicine", "Oncology"]
+  },
+  {
+    "question": "What are the classic symptoms of hypercalcemia?",
+    "answer": "Moans (psychiatric), groans (abdominal), stones (renal), bones (MSK)",
+    "explanation": "This mnemonic captures the multisystem manifestations of hypercalcemia.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypercalcemia", "Electrolytes", "Emergency Medicine", "Symptoms"]
+  },
+  {
+    "question": "What is the initial treatment for symptomatic hypercalcemia?",
+    "answer": "Isotonic saline hydration (with furosemide if hypervolemic)",
+    "explanation": "Patients are usually dehydrated; saline hydration is first-line therapy.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypercalcemia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What are causes of hypocalcemia?",
+    "answer": "Iatrogenic, hypoalbuminemia, liver dysfunction, primary hypoparathyroid, recent thyroid surgery",
+    "explanation": "Hypocalcemia results from PTH deficiency, surgical removal, or binding.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypocalcemia", "Electrolytes", "Emergency Medicine", "Surgery"]
+  },
+  {
+    "question": "What are clinical signs of hypocalcemia?",
+    "answer": "Chvostek's sign, Trousseau's sign, laryngospasm, hyperreflexia, paresthesia, tetany",
+    "explanation": "These are physical exam findings for neuromuscular irritability.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypocalcemia", "Electrolytes", "Emergency Medicine", "Physical Exam"]
+  },
+  {
+    "question": "What is the emergency treatment for acute hypocalcemia (ionized Ca <0.7 mM)?",
+    "answer": "IV calcium gluconate 1-2 g in 10-20 min followed by slow infusion",
+    "explanation": "Urgent treatment is needed for symptomatic hypocalcemia to prevent airway compromise.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypocalcemia", "Electrolytes", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What ECG finding can arise from hypocalcemia and lead to dysrhythmia?",
+    "answer": "Prolonged QT interval",
+    "explanation": "Prolonged QT from hypocalcemia can lead to torsades de pointes.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypocalcemia", "Electrolytes", "Emergency Medicine", "ECG"]
+  },
+  {
+    "question": "What defines a hypertensive emergency?",
+    "answer": "Severe elevation in BP with evidence of end-organ damage (CNS, retinal, CVS, renal, GI)",
+    "explanation": "Hypertensive emergency requires immediate treatment to prevent organ damage.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypertensive Emergency", "Emergency Medicine", "Cardiology"]
+  },
+  {
+    "question": "What are causes of hypertensive emergency?",
+    "answer": "Essential HTN, emotional exertion, pain, sympathomimetic drugs (cocaine, amphetamine), MAOI with tyramine, pheochromocytoma, pregnancy",
+    "explanation": "Multiple conditions can precipitate acute severe hypertension.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypertensive Emergency", "Emergency Medicine", "Cardiology", "Etiology"]
+  },
+  {
+    "question": "What are CNS manifestations of hypertensive emergency?",
+    "answer": "Stroke/TIA, headache, altered mental status, seizures, hemorrhage",
+    "explanation": "CNS is commonly affected in hypertensive emergencies.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypertensive Emergency", "Emergency Medicine", "Neurology"]
+  },
+  {
+    "question": "What is HELLP syndrome and when is it seen?",
+    "answer": "Hemolytic anemia, elevated liver enzymes, low platelets - seen only in preeclampsia/eclampsia",
+    "explanation": "HELLP is a severe form of preeclampsia requiring immediate delivery.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["HELLP", "Hypertensive Emergency", "Obstetrics", "Preeclampsia"]
+  },
+  {
+    "question": "What is the BP reduction goal in hypertensive emergency?",
+    "answer": "Lower BP by 25% over the initial 60 minutes",
+    "explanation": "Rapid over-reduction risks organ hypoperfusion; gradual reduction is key.",
+    "difficulty": 3,
+    "bloomLevel": "apply",
+    "tags": ["Hypertensive Emergency", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "What is the first-line agent typically used in hypertensive emergency?",
+    "answer": "Labetalol (typically)",
+    "explanation": "Labetalol is commonly used for gradual BP reduction in hypertensive emergency.",
+    "difficulty": 2,
+    "bloomLevel": "recall",
+    "tags": ["Hypertensive Emergency", "Emergency Medicine", "Treatment"]
+  },
+  {
+    "question": "Why should non-selective beta-blockers be avoided in hypertensive emergency?",
+    "answer": "They inhibit beta-2 mediated vasodilation and leave alpha-adrenergic vasoconstriction unopposed",
+    "explanation": "Non-selective beta-blockers can worsen hypertension by blocking vasodilatory beta-2 receptors.",
+    "difficulty": 4,
+    "bloomLevel": "analyze",
+    "tags": ["Hypertensive Emergency", "Emergency Medicine", "Pharmacology"]
+  }
+]
