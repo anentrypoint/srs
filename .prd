@@ -1,5 +1,29 @@
 [
   {
+    "id": "pdf-install-dependencies",
+    "subject": "Install and verify PDF processing library",
+    "status": "pending",
+    "description": "Determine which PDF processing library is available and install it if needed (PyPDF2, pdf-parse, or pdf2image). Verify installation and test basic PDF reading capability. Handle Windows-specific requirements (poppler for pdf2image).",
+    "blocking": [
+      "pdf-determine-target-pages"
+    ],
+    "blockedBy": [],
+    "effort": "small",
+    "category": "infra",
+    "acceptance": [
+      "A PDF processing library is successfully installed",
+      "Library can read the Toronto Notes PDF without errors",
+      "Page count can be determined and logged",
+      "Basic text extraction works (test on 1 page)"
+    ],
+    "edge_cases": [
+      "PyPDF2 may need pip install",
+      "pdf-parse requires native bindings",
+      "pdf2image requires poppler system dependency on Windows",
+      "Node.js package manager may be npm, yarn, or pnpm"
+    ]
+  },
+  {
     "id": "pdf-determine-target-pages",
     "subject": "Determine and document which specific pages to extract from the PDF",
     "status": "pending",
@@ -7,7 +31,7 @@
     "blocking": [
       "pdf-page-split-setup"
     ],
-    "blockedBy": [],
+    "blockedBy": ["pdf-install-dependencies"],
     "effort": "small",
     "category": "infra",
     "acceptance": [
