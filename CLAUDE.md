@@ -14,6 +14,17 @@
 - Expected runtime: ~480 hours (can be interrupted and resumed)
 - Saves checkpoint after each epoch for resumability
 
+**src/cards/indexer.js** — Flashcard index creation
+- Aggregates all epoch JSON files into unified index
+- Deduplicates cards by question hash
+- Builds topic map and full-text search index
+- Generates INDEX.md with card statistics
+
+**scripts/create_index.mjs** — Index runner
+- Validates that epoch extraction has completed
+- Creates searchable card index and markdown documentation
+- Output: `data/cards_index.json` and `data/INDEX.md`
+
 ## Running Card Extraction
 
 ```bash
@@ -44,12 +55,25 @@ Each extracted card contains:
 ## Workflow
 
 1. **PDF Extraction** (complete) — All 1595 pages extracted to PNG images
-2. **Card Extraction** (in progress) — Run epoch batch processor
-3. **Flashcard Index** (pending) — Aggregate and index all cards for learning
+2. **Card Extraction** (user-runnable) — Run: `node scripts/run_epoch_extraction.mjs`
+3. **Flashcard Index** (ready) — Run: `node scripts/create_index.mjs` (after step 2)
+
+## Running Index Creation
+
+```bash
+# After all epochs are extracted (step 2 complete)
+node scripts/create_index.mjs
+
+# Output:
+# - data/cards_index.json — Full searchable card database
+# - data/INDEX.md — Markdown documentation with statistics
+```
 
 ## References
 
 - `.prd` — Project requirements and work items
 - `pdf_pages/images/` — Extracted page images (page_0001.png through page_1595.png)
-- `data/extracted_cards/` — Output epoch JSON files
+- `data/extracted_cards/` — Output epoch JSON files (created by run_epoch_extraction.mjs)
 - `data/extraction_checkpoint.json` — Resumable processing state
+- `data/cards_index.json` — Unified card index (created by create_index.mjs)
+- `data/INDEX.md` — Card statistics and documentation

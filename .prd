@@ -27,7 +27,7 @@
     "id": "create-flashcard-index",
     "subject": "Create master index of all extracted flashcards",
     "status": "pending",
-    "description": "Generate INDEX.md and searchable flashcard database from all extracted cards. Include: topic mapping, difficulty levels, source page references, codebase links, card metadata for SRS scheduling.",
+    "description": "Execute index creator: node scripts/create_index.mjs (after epochs complete). Aggregates all epoch JSON files, deduplicates by question hash, builds topic map and full-text search index. Output: data/cards_index.json (unified database) and data/INDEX.md (documentation with statistics by difficulty and Bloom level).",
     "blocking": [],
     "blockedBy": ["process-page-epochs"],
     "effort": "small",
