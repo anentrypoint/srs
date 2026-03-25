@@ -5,3 +5,8 @@ node_modules/
 package-lock.json
 config.json
 data/
+*.tgz
+*.pdf
+nul
+busybase_data/
+.aider.chat.history.md
