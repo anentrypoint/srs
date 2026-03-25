@@ -25,6 +25,28 @@
 - Creates searchable card index and markdown documentation
 - Output: `data/cards_index.json` and `data/INDEX.md`
 
+**src/scheduler/study_plan.js** — Adaptive study schedule
+- Calculates daily targets based on exam date (June 15, 2026)
+- Completion deadline: June 1, 2026 (2 weeks early + 5% safety)
+- Target: 95% mastery with adaptive adjustment
+- SM2 review multiplier factored into daily workload
+
+**docs/_app.jsx** — GitHub Pages SRS app (single-page application)
+- Dashboard with card stats, exam countdown, grade progress
+- Session view for card-by-card study with SM2 scoring
+- Prompt view: generates daily clipboard prompt with today's due cards
+- Assess view: paste agent JSON output, process results, save to SRS
+- Stats, Topics, Config views for tracking progress
+
+## Daily Learning Workflow
+
+1. Open GitHub Pages site → click "Prompt" → copy the daily prompt
+2. Paste prompt into AI agent (Claude, GPT, etc.)
+3. Agent teaches material using Socratic method, tests knowledge
+4. At session end, agent outputs structured JSON assessment
+5. Go back to site → click "Assess" → paste JSON → "Save to SRS"
+6. SM2 algorithm updates card schedules based on performance
+
 ## Running Card Extraction
 
 ```bash
@@ -77,3 +99,6 @@ node scripts/create_index.mjs
 - `data/extraction_checkpoint.json` — Resumable processing state
 - `data/cards_index.json` — Unified card index (created by create_index.mjs)
 - `data/INDEX.md` — Card statistics and documentation
+- `data/clipboard_prompt.md` — Daily clipboard prompt template
+- `data/system_prompt.md` — Agent system prompt for teaching sessions
+- `data/assessment_form.html` — Standalone assessment form (also embedded in app)
