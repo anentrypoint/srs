@@ -15,3 +15,9 @@ docs/webjsx.js
 pdf_pages/
 eng.traineddata
 *.log
+_epoch_texts.json
+cards_generator.js
+flashcards_calc.json
+flashcards_dyslipidemia.json
+temp_flashcards.json
+temp_text.txt
