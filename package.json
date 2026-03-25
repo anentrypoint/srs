@@ -19,6 +19,7 @@
   },
   "scripts": {
     "gui": "bun run gui/server.ts",
-    "gui:css": "bun node_modules/.bin/tailwindcss -i gui/client/input.css -o gui/client/tailwind.css --watch"
+    "gui:css": "bun node_modules/.bin/tailwindcss -i gui/client/input.css -o gui/client/tailwind.css --watch",
+    "build:docs": "bun build docs/_app.jsx --outfile docs/app.js --target browser --jsx-import-source webjsx && cp data/cards.json docs/cards.json"
   }
 }
