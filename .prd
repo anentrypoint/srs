@@ -11,23 +11,12 @@
     "acceptance": ["50+ cards covering presentations -> DDx -> workup"]
   },
   {
-    "id": "fill-pharmacology-depth",
-    "subject": "Generate detailed pharmacology and drug interaction cards",
-    "status": "in_progress",
-    "description": "Agent running in background.",
-    "blocking": [],
-    "blockedBy": [],
-    "effort": "medium",
-    "category": "feature",
-    "acceptance": ["40+ cards across pharm-antimicrobials and pharm-adverse"]
-  },
-  {
     "id": "merge-verify-final",
     "subject": "Merge all gap-fill cards and verify >2500 total",
     "status": "pending",
-    "description": "Merge new cards, verify all areas covered",
+    "description": "Merge DDx cards, verify all areas covered",
     "blocking": [],
-    "blockedBy": ["fill-presentations-ddx", "fill-pharmacology-depth"],
+    "blockedBy": ["fill-presentations-ddx"],
     "effort": "small",
     "category": "infra",
     "acceptance": [">2500 total cards", "Indigenous health >0"]
