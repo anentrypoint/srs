@@ -3,35 +3,87 @@
     "id": "pdf-install-dependencies",
     "subject": "Install and verify PDF processing library",
     "status": "pending",
-    "description": "Determine which PDF processing library is available and install it if needed (PyPDF2, pdf-parse, or pdf2image). Verify installation and test basic PDF reading capability. Handle Windows-specific requirements (poppler for pdf2image).",
+    "description": "Determine which PDF processing library is available and install it if needed (PyPDF2, pdf-parse, or pdf2image). Verify installation and test basic PDF reading capability. Handle Windows-specific requirements (poppler for pdf2image). DISCOVERY: PDF is scanned (1595 pages, NO extractable text) — OCR required.",
     "blocking": [
+      "pdf-choose-ocr-strategy",
       "pdf-determine-target-pages"
     ],
     "blockedBy": [],
     "effort": "small",
     "category": "infra",
     "acceptance": [
-      "A PDF processing library is successfully installed",
-      "Library can read the Toronto Notes PDF without errors",
-      "Page count can be determined and logged",
-      "Basic text extraction works (test on 1 page)"
+      "PDF processing library installed (PyPDF2 confirmed: 1595 pages)",
+      "Total page count determined and logged",
+      "PDF identified as SCANNED (no direct text extraction possible)",
+      "Output directories created: ./pdf_pages/images and ./pdf_pages/text"
     ],
     "edge_cases": [
-      "PyPDF2 may need pip install",
-      "pdf-parse requires native bindings",
+      "PDF is scanned/image-based — requires OCR",
       "pdf2image requires poppler system dependency on Windows",
-      "Node.js package manager may be npm, yarn, or pnpm"
+      "1595 pages × OCR processing = significant time/memory requirements",
+      "Path handling for Windows vs Unix paths"
+    ]
+  },
+  {
+    "id": "pdf-choose-ocr-strategy",
+    "subject": "Choose and plan OCR strategy for scanned PDF",
+    "status": "pending",
+    "description": "Evaluate OCR options for 1595-page scanned PDF: Tesseract, EasyOCR, PaddleOCR, cloud APIs (Google Vision, Azure, AWS). Consider memory constraints, processing time, accuracy, and cost. Make recommendation and document strategy.",
+    "blocking": [
+      "pdf-setup-ocr-infrastructure"
+    ],
+    "blockedBy": ["pdf-install-dependencies"],
+    "effort": "small",
+    "category": "infra",
+    "acceptance": [
+      "OCR tool selected with justification",
+      "Estimated processing time documented",
+      "Memory/resource requirements assessed",
+      "Strategy document saved to ./pdf_pages/OCR_STRATEGY.md",
+      "Decision on per-page vs batch processing"
+    ],
+    "edge_cases": [
+      "Tesseract may need language packs for medical terms",
+      "Cloud APIs have per-page/per-image costs",
+      "Local OCR (Tesseract, EasyOCR) may be memory-intensive for 1595 pages",
+      "Processing time could exceed reasonable limits (hours/days)",
+      "Some medical content may be difficult for generic OCR"
+    ]
+  },
+  {
+    "id": "pdf-setup-ocr-infrastructure",
+    "subject": "Set up OCR processing infrastructure",
+    "status": "pending",
+    "description": "Install and configure the chosen OCR tool. Test on sample pages (1, 100, 500, 1595) to verify accuracy and performance. Create batch processing framework for handling 1595 pages with resumable state.",
+    "blocking": [
+      "pdf-determine-target-pages"
+    ],
+    "blockedBy": ["pdf-choose-ocr-strategy"],
+    "effort": "medium",
+    "category": "infra",
+    "acceptance": [
+      "OCR tool successfully installed and tested",
+      "Sample page OCR works (test pages 1, 100, 500, 1595)",
+      "Processing time per page estimated",
+      "Batch processing framework in place (resumable, memory-efficient)",
+      "State checkpoint system implemented"
+    ],
+    "edge_cases": [
+      "OCR installation may require system-level dependencies",
+      "Windows-specific setup challenges",
+      "Memory management for batch processing 1595 pages",
+      "Language/encoding issues with medical terminology"
     ]
   },
   {
     "id": "pdf-determine-target-pages",
     "subject": "Determine and document which specific pages to extract from the PDF",
     "status": "pending",
-    "description": "Analyze the PDF structure and explicitly list all target pages that need to be extracted. Document the page numbers, their content topics, and purpose. This ensures we only process relevant pages and have a clear scope of work.",
+    "description": "CRITICAL DECISION: Given 1595 scanned pages and significant OCR processing time, explicitly decide: (1) Process ALL 1595 pages? (2) Select specific chapters/sections? (3) Sample subset for testing? Document page ranges, topics, and extraction priority. This determines scope and processing time.",
     "blocking": [
       "pdf-page-split-setup"
     ],
-    "blockedBy": ["pdf-install-dependencies"],
+    "blockedBy": ["pdf-setup-ocr-infrastructure"],
     "effort": "small",
     "category": "infra",
     "acceptance": [
@@ -94,11 +146,11 @@
   },
   {
     "id": "pdf-extract-text",
-    "subject": "Extract text from each PDF page into individual markdown files",
+    "subject": "Extract text from each PDF page into individual markdown files using OCR",
     "status": "pending",
-    "description": "Extract text content from each page and save to separate markdown files with naming convention: page_0001.md, page_0002.md, etc. Include page number as header. Store in ./pdf_pages/text/",
+    "description": "Use OCR to extract text from scanned PDF pages and save to separate markdown files with naming convention: page_0001.md, page_0002.md, etc. Include page number as header. Store in ./pdf_pages/text/. Process in batches with checkpointing.",
     "blocking": [],
-    "blockedBy": ["pdf-page-split-setup"],
+    "blockedBy": ["pdf-setup-ocr-infrastructure", "pdf-page-split-setup"],
     "effort": "large",
     "category": "feature",
     "acceptance": [
