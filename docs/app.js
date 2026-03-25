@@ -643,7 +643,7 @@ function Session() {
   const progress = Math.round(session.index / session.cards.length * 100);
   const isLast = session.index >= session.cards.length - 1;
   if (!card)
-    return /* @__PURE__ */ createElement(SessionComplete, null);
+    return SessionComplete();
   return /* @__PURE__ */ createElement("div", {
     class: "min-h-screen bg-base-100"
   }, /* @__PURE__ */ createElement("div", {
@@ -878,7 +878,7 @@ function Config() {
   }, "Cards: ", CARDS.length, " loaded · States: ", Object.keys(loadStates()).length, " tracked"))));
 }
 function render() {
-  const node = view === "loading" ? /* @__PURE__ */ createElement(Loading, null) : view === "session" || view === "session_complete" ? /* @__PURE__ */ createElement(Session, null) : view === "stats" ? /* @__PURE__ */ createElement(Stats, null) : view === "topics" ? /* @__PURE__ */ createElement(Topics, null) : view === "config" ? /* @__PURE__ */ createElement(Config, null) : /* @__PURE__ */ createElement(Dashboard, null);
+  const node = view === "loading" ? Loading() : view === "session" || view === "session_complete" ? Session() : view === "stats" ? Stats() : view === "topics" ? Topics() : view === "config" ? Config() : Dashboard();
   applyDiff(root, /* @__PURE__ */ createElement("div", {
     class: "min-h-screen bg-base-100 text-base-content"
   }, node));
