@@ -313,6 +313,30 @@ function createDOMElement(velement, parentNamespaceURI) {
   }
   return el;
 }
+function createElement(type, props, ...children) {
+  if (typeof type === "string") {
+    const normalizedProps = props ? props : {};
+    const flatChildren = flattenVNodes(children);
+    if (flatChildren.length > 0) {
+      if (!normalizedProps.dangerouslySetInnerHTML) {
+        normalizedProps.children = flatChildren;
+      } else {
+        normalizedProps.children = [];
+        console.warn("WebJSX: Ignoring children since dangerouslySetInnerHTML is set.");
+      }
+    } else {
+      normalizedProps.children = [];
+    }
+    const result = {
+      type,
+      tagName: KNOWN_ELEMENTS.get(type) ?? type.toUpperCase(),
+      props: normalizedProps ?? {}
+    };
+    return result;
+  } else {
+    return flattenVNodes(children);
+  }
+}
 function applyDiff(parent, vnodes) {
   const newVNodes = flattenVNodes(vnodes);
   const newNodes = diffChildren(parent, newVNodes);
@@ -470,173 +494,6 @@ function applyChanges(parent, changes, originalNodes, nodeOrderUnchanged) {
   return { nodes, lastNode: lastPlacedNode };
 }
 
-// node_modules/webjsx/dist/elementTags.js
-var KNOWN_ELEMENTS2 = new Map(Object.entries({
-  a: "A",
-  abbr: "ABBR",
-  address: "ADDRESS",
-  area: "AREA",
-  article: "ARTICLE",
-  aside: "ASIDE",
-  audio: "AUDIO",
-  b: "B",
-  base: "BASE",
-  bdi: "BDI",
-  bdo: "BDO",
-  blockquote: "BLOCKQUOTE",
-  body: "BODY",
-  br: "BR",
-  button: "BUTTON",
-  canvas: "CANVAS",
-  caption: "CAPTION",
-  cite: "CITE",
-  code: "CODE",
-  col: "COL",
-  colgroup: "COLGROUP",
-  data: "DATA",
-  datalist: "DATALIST",
-  dd: "DD",
-  del: "DEL",
-  details: "DETAILS",
-  dfn: "DFN",
-  dialog: "DIALOG",
-  div: "DIV",
-  dl: "DL",
-  dt: "DT",
-  em: "EM",
-  embed: "EMBED",
-  fieldset: "FIELDSET",
-  figcaption: "FIGCAPTION",
-  figure: "FIGURE",
-  footer: "FOOTER",
-  form: "FORM",
-  h1: "H1",
-  h2: "H2",
-  h3: "H3",
-  h4: "H4",
-  h5: "H5",
-  h6: "H6",
-  head: "HEAD",
-  header: "HEADER",
-  hgroup: "HGROUP",
-  hr: "HR",
-  html: "HTML",
-  i: "I",
-  iframe: "IFRAME",
-  img: "IMG",
-  input: "INPUT",
-  ins: "INS",
-  kbd: "KBD",
-  label: "LABEL",
-  legend: "LEGEND",
-  li: "LI",
-  link: "LINK",
-  main: "MAIN",
-  map: "MAP",
-  mark: "MARK",
-  menu: "MENU",
-  meta: "META",
-  meter: "METER",
-  nav: "NAV",
-  noscript: "NOSCRIPT",
-  object: "OBJECT",
-  ol: "OL",
-  optgroup: "OPTGROUP",
-  option: "OPTION",
-  output: "OUTPUT",
-  p: "P",
-  picture: "PICTURE",
-  pre: "PRE",
-  progress: "PROGRESS",
-  q: "Q",
-  rp: "RP",
-  rt: "RT",
-  ruby: "RUBY",
-  s: "S",
-  samp: "SAMP",
-  script: "SCRIPT",
-  section: "SECTION",
-  select: "SELECT",
-  slot: "SLOT",
-  small: "SMALL",
-  source: "SOURCE",
-  span: "SPAN",
-  strong: "STRONG",
-  style: "STYLE",
-  sub: "SUB",
-  summary: "SUMMARY",
-  sup: "SUP",
-  table: "TABLE",
-  tbody: "TBODY",
-  td: "TD",
-  template: "TEMPLATE",
-  textarea: "TEXTAREA",
-  tfoot: "TFOOT",
-  th: "TH",
-  thead: "THEAD",
-  time: "TIME",
-  title: "TITLE",
-  tr: "TR",
-  track: "TRACK",
-  u: "U",
-  ul: "UL",
-  var: "VAR",
-  video: "VIDEO",
-  wbr: "WBR"
-}));
-
-// node_modules/webjsx/dist/utils.js
-function flattenVNodes2(vnodes, result = []) {
-  if (Array.isArray(vnodes)) {
-    for (const vnode of vnodes) {
-      flattenVNodes2(vnode, result);
-    }
-  } else if (isValidVNode2(vnodes)) {
-    result.push(vnodes);
-  }
-  return result;
-}
-function isValidVNode2(vnode) {
-  const typeofVNode = typeof vnode;
-  return vnode !== null && vnode !== undefined && (typeofVNode === "string" || typeofVNode === "object" || typeofVNode === "number" || typeofVNode === "bigint");
-}
-
-// node_modules/webjsx/dist/createElement.js
-function createElementJSX(type, props, key) {
-  if (typeof type === "string") {
-    props = props || {};
-    const flatChildren = props ? flattenVNodes2(props.children) : [];
-    if (key !== undefined) {
-      props.key = key;
-    }
-    if (flatChildren.length > 0) {
-      if (!props.dangerouslySetInnerHTML) {
-        props.children = flatChildren;
-      } else {
-        props.children = [];
-        console.warn("WebJSX: Ignoring children since dangerouslySetInnerHTML is set.");
-      }
-    } else {
-      props.children = [];
-    }
-    const result = {
-      type,
-      tagName: KNOWN_ELEMENTS2.get(type) ?? type.toUpperCase(),
-      props: props ?? {}
-    };
-    return result;
-  } else {
-    const flatChildren = props ? flattenVNodes2(props.children) : [];
-    return flatChildren;
-  }
-}
-// node_modules/webjsx/dist/jsx-runtime.js
-function jsx2(type, props, key) {
-  return createElementJSX(type, props, key);
-}
-function jsxDEV(type, props, key) {
-  return jsx2(type, props, key);
-}
 // docs/_app.jsx
 function calcSM2(state, score) {
   if (score < 3)
@@ -699,152 +556,81 @@ var go = (v, extra = {}) => {
 };
 var root = document.getElementById("app");
 function Loading() {
-  return /* @__PURE__ */ jsxDEV("div", {
-    class: "flex items-center justify-center min-h-screen",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "text-center space-y-3",
-      children: [
-        /* @__PURE__ */ jsxDEV("span", {
-          class: "loading loading-spinner loading-lg text-primary"
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("p", {
-          class: "text-content2",
-          children: "Loading cards..."
-        }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+  return /* @__PURE__ */ createElement("div", {
+    class: "flex items-center justify-center min-h-screen"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "text-center space-y-3"
+  }, /* @__PURE__ */ createElement("span", {
+    class: "loading loading-spinner loading-lg text-primary"
+  }), /* @__PURE__ */ createElement("p", {
+    class: "text-content2"
+  }, "Loading cards...")));
 }
 function Dashboard() {
   const cfg = loadCfg(), stats = getStats(CARDS), dr = daysLeft(cfg);
   const gp = Math.round(Math.max(0, Math.min(100, (stats.avgEF - 1.3) / (2.5 - 1.3) * 100)));
-  return /* @__PURE__ */ jsxDEV("div", {
-    class: "min-h-screen bg-base-100",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "max-w-4xl mx-auto p-6 space-y-6 fade-in",
-      children: [
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "flex items-center justify-between",
-          children: [
-            /* @__PURE__ */ jsxDEV("div", {
-              children: [
-                /* @__PURE__ */ jsxDEV("h1", {
-                  class: "text-2xl font-bold",
-                  children: "MCCQE1 SRS"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("p", {
-                  class: "text-sm text-content2",
-                  children: "Spaced Repetition Study System"
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsxDEV("button", {
-              class: "btn btn-ghost btn-sm opacity-60 hover:opacity-100",
-              onclick: () => render(),
-              children: "⟳"
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "grid grid-cols-2 sm:grid-cols-4 gap-3",
-          children: [
-            ["Due Today", stats.due, stats.due > 0],
-            ["Total Cards", stats.total, false],
-            ["Days Left", dr, false],
-            ["Target", cfg.targetGrade, false]
-          ].map(([label, val, hi]) => /* @__PURE__ */ jsxDEV("div", {
-            class: "card p-4 text-center space-y-1",
-            children: [
-              /* @__PURE__ */ jsxDEV("div", {
-                class: "text-3xl font-bold " + (hi ? "text-primary" : ""),
-                children: String(val)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsxDEV("div", {
-                class: "text-xs text-content2 uppercase tracking-wide",
-                children: label
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this))
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "card p-5 space-y-3",
-          children: [
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "flex justify-between items-baseline",
-              children: [
-                /* @__PURE__ */ jsxDEV("span", {
-                  class: "font-semibold",
-                  children: "Grade Progress"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("span", {
-                  class: "text-sm text-content2",
-                  children: [
-                    gp,
-                    "% — EF ",
-                    stats.avgEF.toFixed(2)
-                  ]
-                }, undefined, true, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "relative w-full bg-base-200 rounded-full h-4",
-              children: /* @__PURE__ */ jsxDEV("div", {
-                class: "bg-primary h-4 rounded-full prog",
-                style: "width:" + Math.max(gp, 2) + "%"
-              }, undefined, false, undefined, this)
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "flex justify-between text-xs text-content3",
-              children: [["fail", "1.3"], ["pass", "2.0"], ["honours", "2.5"]].map(([l, v]) => /* @__PURE__ */ jsxDEV("div", {
-                class: "text-center",
-                children: [
-                  /* @__PURE__ */ jsxDEV("div", {
-                    class: "font-mono",
-                    children: v
-                  }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsxDEV("div", {
-                    class: "capitalize",
-                    children: l
-                  }, undefined, false, undefined, this)
-                ]
-              }, undefined, true, undefined, this))
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        stats.avgScore != null && /* @__PURE__ */ jsxDEV("p", {
-          class: "text-sm text-content2",
-          children: [
-            "Last score avg: ",
-            /* @__PURE__ */ jsxDEV("span", {
-              class: "font-medium text-base-content",
-              children: [
-                stats.avgScore.toFixed(1),
-                "/5"
-              ]
-            }, undefined, true, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "flex flex-wrap gap-3 pt-2",
-          children: [
-            /* @__PURE__ */ jsxDEV("button", {
-              class: "btn btn-lg " + (stats.due > 0 ? "btn-primary" : "btn-ghost btn-disabled"),
-              onclick: () => stats.due > 0 && startSession(),
-              children: stats.due > 0 ? `Study Now — ${stats.due} card${stats.due === 1 ? "" : "s"}` : "No Cards Due"
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "flex gap-2 ml-auto",
-              children: [["Stats", "stats"], ["Topics", "topics"], ["Config", "config"]].map(([l, v]) => /* @__PURE__ */ jsxDEV("button", {
-                class: "btn btn-ghost btn-sm",
-                onclick: () => go(v),
-                children: l
-              }, undefined, false, undefined, this))
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+  return /* @__PURE__ */ createElement("div", {
+    class: "min-h-screen bg-base-100"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "max-w-4xl mx-auto p-6 space-y-6 fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center justify-between"
+  }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("h1", {
+    class: "text-2xl font-bold"
+  }, "MCCQE1 SRS"), /* @__PURE__ */ createElement("p", {
+    class: "text-sm text-content2"
+  }, "Spaced Repetition Study System")), /* @__PURE__ */ createElement("button", {
+    class: "btn btn-ghost btn-sm opacity-60 hover:opacity-100",
+    onclick: () => render()
+  }, "⟳")), /* @__PURE__ */ createElement("div", {
+    class: "grid grid-cols-2 sm:grid-cols-4 gap-3"
+  }, [
+    ["Due Today", stats.due, stats.due > 0],
+    ["Total Cards", stats.total, false],
+    ["Days Left", dr, false],
+    ["Target", cfg.targetGrade, false]
+  ].map(([label, val, hi]) => /* @__PURE__ */ createElement("div", {
+    class: "card p-4 text-center space-y-1"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "text-3xl font-bold " + (hi ? "text-primary" : "")
+  }, String(val)), /* @__PURE__ */ createElement("div", {
+    class: "text-xs text-content2 uppercase tracking-wide"
+  }, label)))), /* @__PURE__ */ createElement("div", {
+    class: "card p-5 space-y-3"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex justify-between items-baseline"
+  }, /* @__PURE__ */ createElement("span", {
+    class: "font-semibold"
+  }, "Grade Progress"), /* @__PURE__ */ createElement("span", {
+    class: "text-sm text-content2"
+  }, gp, "% — EF ", stats.avgEF.toFixed(2))), /* @__PURE__ */ createElement("div", {
+    class: "relative w-full bg-base-200 rounded-full h-4"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "bg-primary h-4 rounded-full prog",
+    style: "width:" + Math.max(gp, 2) + "%"
+  })), /* @__PURE__ */ createElement("div", {
+    class: "flex justify-between text-xs text-content3"
+  }, [["fail", "1.3"], ["pass", "2.0"], ["honours", "2.5"]].map(([l, v]) => /* @__PURE__ */ createElement("div", {
+    class: "text-center"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "font-mono"
+  }, v), /* @__PURE__ */ createElement("div", {
+    class: "capitalize"
+  }, l))))), stats.avgScore != null && /* @__PURE__ */ createElement("p", {
+    class: "text-sm text-content2"
+  }, "Last score avg: ", /* @__PURE__ */ createElement("span", {
+    class: "font-medium text-base-content"
+  }, stats.avgScore.toFixed(1), "/5")), /* @__PURE__ */ createElement("div", {
+    class: "flex flex-wrap gap-3 pt-2"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn btn-lg " + (stats.due > 0 ? "btn-primary" : "btn-ghost btn-disabled"),
+    onclick: () => stats.due > 0 && startSession()
+  }, stats.due > 0 ? `Study Now — ${stats.due} card${stats.due === 1 ? "" : "s"}` : "No Cards Due"), /* @__PURE__ */ createElement("div", {
+    class: "flex gap-2 ml-auto"
+  }, [["Stats", "stats"], ["Topics", "topics"], ["Config", "config"]].map(([l, v]) => /* @__PURE__ */ createElement("button", {
+    class: "btn btn-ghost btn-sm",
+    onclick: () => go(v)
+  }, l))))));
 }
 function startSession() {
   const due = getDue(CARDS);
@@ -857,181 +643,96 @@ function Session() {
   const progress = Math.round(session.index / session.cards.length * 100);
   const isLast = session.index >= session.cards.length - 1;
   if (!card)
-    return /* @__PURE__ */ jsxDEV(SessionComplete, {}, undefined, false, undefined, this);
-  return /* @__PURE__ */ jsxDEV("div", {
-    class: "min-h-screen bg-base-100",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "max-w-2xl mx-auto p-6 space-y-6 fade-in",
-      children: [
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "flex items-center justify-between",
-          children: [
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "flex items-center gap-3",
-              children: [
-                /* @__PURE__ */ jsxDEV("button", {
-                  class: "btn btn-ghost btn-sm",
-                  onclick: () => go("dashboard"),
-                  children: "← Exit"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("span", {
-                  class: "text-sm text-content2",
-                  children: [
-                    session.index + 1,
-                    " / ",
-                    session.cards.length
-                  ]
-                }, undefined, true, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsxDEV("span", {
-              class: "text-sm text-content2",
-              children: [
-                progress,
-                "%"
-              ]
-            }, undefined, true, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "w-full bg-base-200 rounded-full h-1.5",
-          children: /* @__PURE__ */ jsxDEV("div", {
-            class: "bg-primary h-1.5 rounded-full prog",
-            style: "width:" + progress + "%"
-          }, undefined, false, undefined, this)
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "card p-6 space-y-4",
-          children: [
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "flex items-center gap-2",
-              children: [
-                /* @__PURE__ */ jsxDEV("span", {
-                  class: "badge badge-ghost badge-sm font-mono",
-                  children: card.topicId
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("span", {
-                  class: "badge badge-ghost badge-sm",
-                  children: card.bloomLevel
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsxDEV("p", {
-              class: "text-lg font-medium leading-relaxed card-text",
-              children: card.question
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        phase === "question" && /* @__PURE__ */ jsxDEV("button", {
-          class: "btn btn-primary w-full",
-          onclick: () => go("session", { phase: "answer" }),
-          children: "Reveal Answer"
-        }, undefined, false, undefined, this),
-        phase === "answer" && /* @__PURE__ */ jsxDEV("div", {
-          class: "card p-5 space-y-4 fade-in",
-          children: [
-            /* @__PURE__ */ jsxDEV("div", {
-              children: [
-                /* @__PURE__ */ jsxDEV("p", {
-                  class: "text-xs text-content2 mb-2 uppercase tracking-wide",
-                  children: "Answer"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("p", {
-                  class: "text-base leading-relaxed card-text",
-                  children: card.answer
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            card.explanation && /* @__PURE__ */ jsxDEV("div", {
-              class: "border-t border-base-200 pt-3",
-              children: [
-                /* @__PURE__ */ jsxDEV("p", {
-                  class: "text-xs text-content2 mb-1 uppercase tracking-wide",
-                  children: "Explanation"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("p", {
-                  class: "text-sm text-content2 leading-relaxed card-text",
-                  children: card.explanation
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "border-t border-base-200 pt-4 space-y-2",
-              children: [
-                /* @__PURE__ */ jsxDEV("p", {
-                  class: "text-sm text-content2 mb-3",
-                  children: "How well did you know this?"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("div", {
-                  class: "grid grid-cols-5 gap-2",
-                  children: [1, 2, 3, 4, 5].map((score) => /* @__PURE__ */ jsxDEV("button", {
-                    class: "btn btn-sm flex-col h-auto py-2 " + (score <= 2 ? "btn-error" : score === 3 ? "btn-warning" : "btn-success"),
-                    onclick: () => {
-                      updateCard(card.id, score);
-                      session.results.push({ cardId: card.id, score });
-                      if (isLast)
-                        go("session_complete", { lastResults: session.results });
-                      else {
-                        session.index++;
-                        go("session", { phase: "question" });
-                      }
-                    },
-                    children: [
-                      /* @__PURE__ */ jsxDEV("span", {
-                        class: "font-bold text-base",
-                        children: score
-                      }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsxDEV("span", {
-                        class: "text-xs opacity-80",
-                        children: ["", "Blank", "Wrong", "Hard", "Good", "Easy"][score]
-                      }, undefined, false, undefined, this)
-                    ]
-                  }, undefined, true, undefined, this))
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this)
-          ]
-        }, undefined, true, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+    return /* @__PURE__ */ createElement(SessionComplete, null);
+  return /* @__PURE__ */ createElement("div", {
+    class: "min-h-screen bg-base-100"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "max-w-2xl mx-auto p-6 space-y-6 fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center justify-between"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center gap-3"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn btn-ghost btn-sm",
+    onclick: () => go("dashboard")
+  }, "← Exit"), /* @__PURE__ */ createElement("span", {
+    class: "text-sm text-content2"
+  }, session.index + 1, " / ", session.cards.length)), /* @__PURE__ */ createElement("span", {
+    class: "text-sm text-content2"
+  }, progress, "%")), /* @__PURE__ */ createElement("div", {
+    class: "w-full bg-base-200 rounded-full h-1.5"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "bg-primary h-1.5 rounded-full prog",
+    style: "width:" + progress + "%"
+  })), /* @__PURE__ */ createElement("div", {
+    class: "card p-6 space-y-4"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center gap-2"
+  }, /* @__PURE__ */ createElement("span", {
+    class: "badge badge-ghost badge-sm font-mono"
+  }, card.topicId), /* @__PURE__ */ createElement("span", {
+    class: "badge badge-ghost badge-sm"
+  }, card.bloomLevel)), /* @__PURE__ */ createElement("p", {
+    class: "text-lg font-medium leading-relaxed card-text"
+  }, card.question)), phase === "question" && /* @__PURE__ */ createElement("button", {
+    class: "btn btn-primary w-full",
+    onclick: () => go("session", { phase: "answer" })
+  }, "Reveal Answer"), phase === "answer" && /* @__PURE__ */ createElement("div", {
+    class: "card p-5 space-y-4 fade-in"
+  }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("p", {
+    class: "text-xs text-content2 mb-2 uppercase tracking-wide"
+  }, "Answer"), /* @__PURE__ */ createElement("p", {
+    class: "text-base leading-relaxed card-text"
+  }, card.answer)), card.explanation && /* @__PURE__ */ createElement("div", {
+    class: "border-t border-base-200 pt-3"
+  }, /* @__PURE__ */ createElement("p", {
+    class: "text-xs text-content2 mb-1 uppercase tracking-wide"
+  }, "Explanation"), /* @__PURE__ */ createElement("p", {
+    class: "text-sm text-content2 leading-relaxed card-text"
+  }, card.explanation)), /* @__PURE__ */ createElement("div", {
+    class: "border-t border-base-200 pt-4 space-y-2"
+  }, /* @__PURE__ */ createElement("p", {
+    class: "text-sm text-content2 mb-3"
+  }, "How well did you know this?"), /* @__PURE__ */ createElement("div", {
+    class: "grid grid-cols-5 gap-2"
+  }, [1, 2, 3, 4, 5].map((score) => /* @__PURE__ */ createElement("button", {
+    class: "btn btn-sm flex-col h-auto py-2 " + (score <= 2 ? "btn-error" : score === 3 ? "btn-warning" : "btn-success"),
+    onclick: () => {
+      updateCard(card.id, score);
+      session.results.push({ cardId: card.id, score });
+      if (isLast)
+        go("session_complete", { lastResults: session.results });
+      else {
+        session.index++;
+        go("session", { phase: "question" });
+      }
+    }
+  }, /* @__PURE__ */ createElement("span", {
+    class: "font-bold text-base"
+  }, score), /* @__PURE__ */ createElement("span", {
+    class: "text-xs opacity-80"
+  }, ["", "Blank", "Wrong", "Hard", "Good", "Easy"][score]))))))));
 }
 function SessionComplete() {
   const results = ctx.lastResults ?? ctx.session?.results ?? [];
   const avg = results.length ? (results.reduce((s, r) => s + r.score, 0) / results.length).toFixed(1) : "—";
   const correct = results.filter((r) => r.score >= 4).length;
-  return /* @__PURE__ */ jsxDEV("div", {
-    class: "min-h-screen flex items-center justify-center",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "card p-8 text-center space-y-4 max-w-sm fade-in",
-      children: [
-        /* @__PURE__ */ jsxDEV("p", {
-          class: "text-xl font-semibold",
-          children: "Session Complete"
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "grid grid-cols-3 gap-3",
-          children: [["Cards", results.length, "text-primary"], ["Correct", correct, "text-success"], ["Avg", avg, ""]].map(([l, v, cls]) => /* @__PURE__ */ jsxDEV("div", {
-            children: [
-              /* @__PURE__ */ jsxDEV("div", {
-                class: "text-2xl font-bold " + cls,
-                children: String(v)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsxDEV("div", {
-                class: "text-xs text-content2",
-                children: l
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this))
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("button", {
-          class: "btn btn-primary w-full",
-          onclick: () => go("dashboard"),
-          children: "Back to Dashboard"
-        }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+  return /* @__PURE__ */ createElement("div", {
+    class: "min-h-screen flex items-center justify-center"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "card p-8 text-center space-y-4 max-w-sm fade-in"
+  }, /* @__PURE__ */ createElement("p", {
+    class: "text-xl font-semibold"
+  }, "Session Complete"), /* @__PURE__ */ createElement("div", {
+    class: "grid grid-cols-3 gap-3"
+  }, [["Cards", results.length, "text-primary"], ["Correct", correct, "text-success"], ["Avg", avg, ""]].map(([l, v, cls]) => /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "text-2xl font-bold " + cls
+  }, String(v)), /* @__PURE__ */ createElement("div", {
+    class: "text-xs text-content2"
+  }, l)))), /* @__PURE__ */ createElement("button", {
+    class: "btn btn-primary w-full",
+    onclick: () => go("dashboard")
+  }, "Back to Dashboard")));
 }
 function Stats() {
   const states = loadStates(), stats = getStats(CARDS);
@@ -1049,283 +750,153 @@ function Stats() {
   for (const t of Object.values(byTopic))
     t.ef = (t.ef / t.total).toFixed(2);
   const rows = Object.entries(byTopic).sort((a, b) => b[1].due - a[1].due);
-  return /* @__PURE__ */ jsxDEV("div", {
-    class: "min-h-screen bg-base-100",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "max-w-4xl mx-auto p-6 space-y-6 fade-in",
-      children: [
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "flex items-center gap-3",
-          children: [
-            /* @__PURE__ */ jsxDEV("button", {
-              class: "btn btn-ghost btn-sm",
-              onclick: () => go("dashboard"),
-              children: "← Back"
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsxDEV("h2", {
-              class: "text-xl font-bold",
-              children: "Statistics"
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "grid grid-cols-2 sm:grid-cols-4 gap-3",
-          children: [["Total", stats.total], ["Due", stats.due], ["Avg EF", stats.avgEF.toFixed(2)], ["Avg Score", stats.avgScore?.toFixed(1) ?? "—"]].map(([l, v]) => /* @__PURE__ */ jsxDEV("div", {
-            class: "card p-4 text-center space-y-1",
-            children: [
-              /* @__PURE__ */ jsxDEV("div", {
-                class: "text-2xl font-bold",
-                children: String(v)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsxDEV("div", {
-                class: "text-xs text-content2 uppercase tracking-wide",
-                children: l
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this))
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "card overflow-hidden",
-          children: /* @__PURE__ */ jsxDEV("table", {
-            class: "table w-full text-sm",
-            children: [
-              /* @__PURE__ */ jsxDEV("thead", {
-                children: /* @__PURE__ */ jsxDEV("tr", {
-                  children: [
-                    /* @__PURE__ */ jsxDEV("th", {
-                      children: "Topic"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsxDEV("th", {
-                      class: "text-right",
-                      children: "Cards"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsxDEV("th", {
-                      class: "text-right",
-                      children: "Due"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsxDEV("th", {
-                      class: "text-right",
-                      children: "Avg EF"
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsxDEV("tbody", {
-                children: rows.map(([tid, t]) => /* @__PURE__ */ jsxDEV("tr", {
-                  children: [
-                    /* @__PURE__ */ jsxDEV("td", {
-                      class: "font-mono text-xs",
-                      children: tid
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsxDEV("td", {
-                      class: "text-right",
-                      children: t.total
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsxDEV("td", {
-                      class: "text-right " + (t.due > 0 ? "text-primary font-medium" : ""),
-                      children: t.due
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsxDEV("td", {
-                      class: "text-right",
-                      children: t.ef
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this))
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
-        }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+  return /* @__PURE__ */ createElement("div", {
+    class: "min-h-screen bg-base-100"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "max-w-4xl mx-auto p-6 space-y-6 fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center gap-3"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn btn-ghost btn-sm",
+    onclick: () => go("dashboard")
+  }, "← Back"), /* @__PURE__ */ createElement("h2", {
+    class: "text-xl font-bold"
+  }, "Statistics")), /* @__PURE__ */ createElement("div", {
+    class: "grid grid-cols-2 sm:grid-cols-4 gap-3"
+  }, [["Total", stats.total], ["Due", stats.due], ["Avg EF", stats.avgEF.toFixed(2)], ["Avg Score", stats.avgScore?.toFixed(1) ?? "—"]].map(([l, v]) => /* @__PURE__ */ createElement("div", {
+    class: "card p-4 text-center space-y-1"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "text-2xl font-bold"
+  }, String(v)), /* @__PURE__ */ createElement("div", {
+    class: "text-xs text-content2 uppercase tracking-wide"
+  }, l)))), /* @__PURE__ */ createElement("div", {
+    class: "card overflow-hidden"
+  }, /* @__PURE__ */ createElement("table", {
+    class: "table w-full text-sm"
+  }, /* @__PURE__ */ createElement("thead", null, /* @__PURE__ */ createElement("tr", null, /* @__PURE__ */ createElement("th", null, "Topic"), /* @__PURE__ */ createElement("th", {
+    class: "text-right"
+  }, "Cards"), /* @__PURE__ */ createElement("th", {
+    class: "text-right"
+  }, "Due"), /* @__PURE__ */ createElement("th", {
+    class: "text-right"
+  }, "Avg EF"))), /* @__PURE__ */ createElement("tbody", null, rows.map(([tid, t]) => /* @__PURE__ */ createElement("tr", null, /* @__PURE__ */ createElement("td", {
+    class: "font-mono text-xs"
+  }, tid), /* @__PURE__ */ createElement("td", {
+    class: "text-right"
+  }, t.total), /* @__PURE__ */ createElement("td", {
+    class: "text-right " + (t.due > 0 ? "text-primary font-medium" : "")
+  }, t.due), /* @__PURE__ */ createElement("td", {
+    class: "text-right"
+  }, t.ef))))))));
 }
 function Topics() {
   const byTopic = {};
   for (const c of CARDS)
     byTopic[c.topicId] = (byTopic[c.topicId] || 0) + 1;
   const topics = Object.entries(byTopic).sort((a, b) => b[1] - a[1]);
-  return /* @__PURE__ */ jsxDEV("div", {
-    class: "min-h-screen bg-base-100",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "max-w-4xl mx-auto p-6 space-y-6 fade-in",
-      children: [
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "flex items-center gap-3",
-          children: [
-            /* @__PURE__ */ jsxDEV("button", {
-              class: "btn btn-ghost btn-sm",
-              onclick: () => go("dashboard"),
-              children: "← Back"
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsxDEV("h2", {
-              class: "text-xl font-bold",
-              children: [
-                "Topics (",
-                topics.length,
-                ")"
-              ]
-            }, undefined, true, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "grid grid-cols-2 sm:grid-cols-3 gap-2",
-          children: topics.map(([tid, count]) => /* @__PURE__ */ jsxDEV("div", {
-            class: "card p-3 flex items-center justify-between",
-            children: [
-              /* @__PURE__ */ jsxDEV("span", {
-                class: "font-mono text-xs text-content2",
-                children: tid
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsxDEV("span", {
-                class: "badge badge-ghost badge-sm",
-                children: count
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this))
-        }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+  return /* @__PURE__ */ createElement("div", {
+    class: "min-h-screen bg-base-100"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "max-w-4xl mx-auto p-6 space-y-6 fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center gap-3"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn btn-ghost btn-sm",
+    onclick: () => go("dashboard")
+  }, "← Back"), /* @__PURE__ */ createElement("h2", {
+    class: "text-xl font-bold"
+  }, "Topics (", topics.length, ")")), /* @__PURE__ */ createElement("div", {
+    class: "grid grid-cols-2 sm:grid-cols-3 gap-2"
+  }, topics.map(([tid, count]) => /* @__PURE__ */ createElement("div", {
+    class: "card p-3 flex items-center justify-between"
+  }, /* @__PURE__ */ createElement("span", {
+    class: "font-mono text-xs text-content2"
+  }, tid), /* @__PURE__ */ createElement("span", {
+    class: "badge badge-ghost badge-sm"
+  }, count))))));
 }
 function Config() {
   const cfg = loadCfg();
   let examEl, minsEl;
-  return /* @__PURE__ */ jsxDEV("div", {
-    class: "min-h-screen bg-base-100",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "max-w-xl mx-auto p-6 space-y-6 fade-in",
-      children: [
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "flex items-center gap-3",
-          children: [
-            /* @__PURE__ */ jsxDEV("button", {
-              class: "btn btn-ghost btn-sm",
-              onclick: () => go("dashboard"),
-              children: "← Back"
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsxDEV("h2", {
-              class: "text-xl font-bold",
-              children: "Config"
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "card p-5 space-y-4",
-          children: [
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "space-y-1",
-              children: [
-                /* @__PURE__ */ jsxDEV("label", {
-                  class: "text-sm text-content2 uppercase tracking-wide",
-                  children: "Exam Date"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("input", {
-                  type: "date",
-                  class: "input w-full",
-                  value: cfg.examDate,
-                  ref: (e) => examEl = e
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "space-y-1",
-              children: [
-                /* @__PURE__ */ jsxDEV("label", {
-                  class: "text-sm text-content2 uppercase tracking-wide",
-                  children: "Daily Study Minutes"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("input", {
-                  type: "number",
-                  class: "input w-full",
-                  min: "10",
-                  max: "360",
-                  value: String(cfg.dailyStudyMinutes),
-                  ref: (e) => minsEl = e
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsxDEV("div", {
-              class: "flex gap-3 pt-2",
-              children: [
-                /* @__PURE__ */ jsxDEV("button", {
-                  class: "btn btn-primary flex-1",
-                  onclick: () => {
-                    saveCfg({ ...cfg, examDate: examEl.value || cfg.examDate, dailyStudyMinutes: parseInt(minsEl.value) || cfg.dailyStudyMinutes });
-                    go("dashboard");
-                  },
-                  children: "Save"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsxDEV("button", {
-                  class: "btn btn-error btn-outline",
-                  onclick: () => {
-                    if (confirm("Reset all SRS progress? This cannot be undone.")) {
-                      localStorage.removeItem(SK);
-                      go("dashboard");
-                    }
-                  },
-                  children: "Reset Progress"
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this)
-          ]
-        }, undefined, true, undefined, this),
-        /* @__PURE__ */ jsxDEV("div", {
-          class: "card p-4 space-y-2",
-          children: [
-            /* @__PURE__ */ jsxDEV("p", {
-              class: "text-sm font-medium",
-              children: "Data Storage"
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsxDEV("p", {
-              class: "text-xs text-content2",
-              children: "All SRS progress is stored in your browser's localStorage. No account or server required."
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsxDEV("p", {
-              class: "text-xs text-content2",
-              children: [
-                "Cards: ",
-                CARDS.length,
-                " loaded · States: ",
-                Object.keys(loadStates()).length,
-                " tracked"
-              ]
-            }, undefined, true, undefined, this)
-          ]
-        }, undefined, true, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+  return /* @__PURE__ */ createElement("div", {
+    class: "min-h-screen bg-base-100"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "max-w-xl mx-auto p-6 space-y-6 fade-in"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center gap-3"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn btn-ghost btn-sm",
+    onclick: () => go("dashboard")
+  }, "← Back"), /* @__PURE__ */ createElement("h2", {
+    class: "text-xl font-bold"
+  }, "Config")), /* @__PURE__ */ createElement("div", {
+    class: "card p-5 space-y-4"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "space-y-1"
+  }, /* @__PURE__ */ createElement("label", {
+    class: "text-sm text-content2 uppercase tracking-wide"
+  }, "Exam Date"), /* @__PURE__ */ createElement("input", {
+    type: "date",
+    class: "input w-full",
+    value: cfg.examDate,
+    ref: (e) => examEl = e
+  })), /* @__PURE__ */ createElement("div", {
+    class: "space-y-1"
+  }, /* @__PURE__ */ createElement("label", {
+    class: "text-sm text-content2 uppercase tracking-wide"
+  }, "Daily Study Minutes"), /* @__PURE__ */ createElement("input", {
+    type: "number",
+    class: "input w-full",
+    min: "10",
+    max: "360",
+    value: String(cfg.dailyStudyMinutes),
+    ref: (e) => minsEl = e
+  })), /* @__PURE__ */ createElement("div", {
+    class: "flex gap-3 pt-2"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn btn-primary flex-1",
+    onclick: () => {
+      saveCfg({ ...cfg, examDate: examEl.value || cfg.examDate, dailyStudyMinutes: parseInt(minsEl.value) || cfg.dailyStudyMinutes });
+      go("dashboard");
+    }
+  }, "Save"), /* @__PURE__ */ createElement("button", {
+    class: "btn btn-error btn-outline",
+    onclick: () => {
+      if (confirm("Reset all SRS progress? This cannot be undone.")) {
+        localStorage.removeItem(SK);
+        go("dashboard");
+      }
+    }
+  }, "Reset Progress"))), /* @__PURE__ */ createElement("div", {
+    class: "card p-4 space-y-2"
+  }, /* @__PURE__ */ createElement("p", {
+    class: "text-sm font-medium"
+  }, "Data Storage"), /* @__PURE__ */ createElement("p", {
+    class: "text-xs text-content2"
+  }, "All SRS progress is stored in your browser's localStorage. No account or server required."), /* @__PURE__ */ createElement("p", {
+    class: "text-xs text-content2"
+  }, "Cards: ", CARDS.length, " loaded · States: ", Object.keys(loadStates()).length, " tracked"))));
 }
 function render() {
-  const node = view === "loading" ? /* @__PURE__ */ jsxDEV(Loading, {}, undefined, false, undefined, this) : view === "session" || view === "session_complete" ? /* @__PURE__ */ jsxDEV(Session, {}, undefined, false, undefined, this) : view === "stats" ? /* @__PURE__ */ jsxDEV(Stats, {}, undefined, false, undefined, this) : view === "topics" ? /* @__PURE__ */ jsxDEV(Topics, {}, undefined, false, undefined, this) : view === "config" ? /* @__PURE__ */ jsxDEV(Config, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsxDEV(Dashboard, {}, undefined, false, undefined, this);
-  applyDiff(root, /* @__PURE__ */ jsxDEV("div", {
-    class: "min-h-screen bg-base-100 text-base-content",
-    children: node
-  }, undefined, false, undefined, this));
+  const node = view === "loading" ? /* @__PURE__ */ createElement(Loading, null) : view === "session" || view === "session_complete" ? /* @__PURE__ */ createElement(Session, null) : view === "stats" ? /* @__PURE__ */ createElement(Stats, null) : view === "topics" ? /* @__PURE__ */ createElement(Topics, null) : view === "config" ? /* @__PURE__ */ createElement(Config, null) : /* @__PURE__ */ createElement(Dashboard, null);
+  applyDiff(root, /* @__PURE__ */ createElement("div", {
+    class: "min-h-screen bg-base-100 text-base-content"
+  }, node));
 }
 render();
 fetch("cards.json").then((r) => r.json()).then((cards) => {
   CARDS = cards;
   go("dashboard");
 }).catch((err) => {
-  applyDiff(root, /* @__PURE__ */ jsxDEV("div", {
-    class: "flex items-center justify-center min-h-screen",
-    children: /* @__PURE__ */ jsxDEV("div", {
-      class: "card p-8 text-center space-y-4 max-w-sm",
-      children: [
-        /* @__PURE__ */ jsxDEV("p", {
-          class: "text-error text-lg font-medium",
-          children: "Failed to load cards"
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("p", {
-          class: "text-content2 text-sm",
-          children: err.message
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsxDEV("p", {
-          class: "text-content3 text-xs",
-          children: "Must be served over HTTP — not opened as a file://"
-        }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this));
+  applyDiff(root, /* @__PURE__ */ createElement("div", {
+    class: "flex items-center justify-center min-h-screen"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "card p-8 text-center space-y-4 max-w-sm"
+  }, /* @__PURE__ */ createElement("p", {
+    class: "text-error text-lg font-medium"
+  }, "Failed to load cards"), /* @__PURE__ */ createElement("p", {
+    class: "text-content2 text-sm"
+  }, err.message), /* @__PURE__ */ createElement("p", {
+    class: "text-content3 text-xs"
+  }, "Must be served over HTTP — not opened as a file://"))));
 });
