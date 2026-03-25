@@ -3,7 +3,7 @@
     "id": "process-page-epochs",
     "subject": "Process all 1595 extracted PDF pages in 10-page epochs to extract cards",
     "status": "pending",
-    "description": "Batch process pages 1-1595 in epochs of 10 pages. For each epoch: invoke AI agent, extract cards, validate, output to JSON. Start with pages 1-10, then 11-20, etc. Generate flashcards with image references and metadata.",
+    "description": "Execute batch processor: node scripts/run_epoch_extraction.mjs. This processes all 160 epochs (1595 pages total) in sequence. Each epoch: load 10 page images, invoke opencode CLI to extract cards, save JSON to data/extracted_cards/, update checkpoint. Resumable: interrupt and re-run to continue from last completed epoch.",
     "blocking": ["create-flashcard-index"],
     "blockedBy": [],
     "effort": "large",
