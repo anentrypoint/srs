@@ -1,40 +1,15 @@
 [
   {
-    "id": "setup-card-extraction-pipeline",
-    "subject": "Set up card extraction pipeline with AI agents processing 10-page epochs",
+    "id": "process-page-epochs",
+    "subject": "Process all 1595 extracted PDF pages in 10-page epochs to extract cards",
     "status": "pending",
-    "description": "Create infrastructure for processing PDF pages in epochs of 10 pages. Each epoch: (1) load 10 page images, (2) invoke opencode/kilocode AI agent to extract all possible cards, (3) use acpreact to parse and structure cards, (4) cross-reference with codebase search, (5) output to JSON flashcard format. Make resumable with checkpointing.",
-    "blocking": ["process-page-epochs"],
+    "description": "Batch process pages 1-1595 in epochs of 10 pages. For each epoch: invoke AI agent, extract cards, validate, output to JSON. Start with pages 1-10, then 11-20, etc. Generate flashcards with image references and metadata.",
+    "blocking": ["create-flashcard-index"],
     "blockedBy": [],
     "effort": "large",
     "category": "feature",
     "acceptance": [
-      "Card extraction pipeline created",
-      "Epoch processing logic (10 pages per batch)",
-      "AI agent integration (opencode/kilocode)",
-      "acpreact extraction working",
-      "Codebase search integration available",
-      "JSON flashcard output format defined",
-      "Checkpointing system for resumability"
-    ],
-    "edge_cases": [
-      "AI agent token limits for large epochs",
-      "Handling empty or low-quality extractions",
-      "Codebase search availability during processing",
-      "JSON file management for thousands of cards"
-    ]
-  },
-  {
-    "id": "process-page-epochs",
-    "subject": "Process all 933 extracted PDF pages in 10-page epochs to extract cards",
-    "status": "pending",
-    "description": "Batch process pages 1-933 in epochs of 10 pages. For each epoch: invoke AI agent, extract cards, validate, output to JSON. Start with pages 1-10, then 11-20, etc. Generate flashcards with image references and metadata.",
-    "blocking": ["create-flashcard-index"],
-    "blockedBy": ["setup-card-extraction-pipeline"],
-    "effort": "large",
-    "category": "feature",
-    "acceptance": [
-      "All 933 pages processed in 10-page batches",
+      "All 1595 pages processed in 10-page batches",
       "Each batch produces extracted cards in JSON",
       "Cards cross-referenced with codebase",
       "Progress checkpointed (resumable if interrupted)",
@@ -45,7 +20,7 @@
       "AI agent timeouts on large epochs",
       "Duplicate card detection across epochs",
       "Quality variation in extracted content",
-      "Memory/resource management across 93+ epochs"
+      "Memory/resource management across 160+ epochs"
     ]
   },
   {
