@@ -1,1 +1,63 @@
-[]
+[
+  {
+    "id": "pdf-install-pdf-tools",
+    "subject": "Install PDF-to-image conversion library",
+    "status": "pending",
+    "description": "Install pdf2image or similar to convert PDF pages to image files. Test on sample page.",
+    "blocking": ["pdf-split-all-pages"],
+    "blockedBy": [],
+    "effort": "small",
+    "category": "infra",
+    "acceptance": [
+      "PDF conversion library installed (pdf2image with poppler)",
+      "Sample page conversion tested successfully",
+      "Output format determined (PNG/JPEG)"
+    ],
+    "edge_cases": [
+      "pdf2image requires poppler on Windows",
+      "Poppler installation via chocolatey or direct download"
+    ]
+  },
+  {
+    "id": "pdf-split-all-pages",
+    "subject": "Split PDF into individual page images (1595 pages)",
+    "status": "pending",
+    "description": "Convert all 1595 pages of Toronto Notes 2025.pdf into individual image files. Output: page_0001.png, page_0002.png, ... page_1595.png in ./pdf_pages/images/",
+    "blocking": ["pdf-create-page-listing"],
+    "blockedBy": ["pdf-install-pdf-tools"],
+    "effort": "large",
+    "category": "feature",
+    "acceptance": [
+      "All 1595 images created with sequential numbering",
+      "Images stored in ./pdf_pages/images/",
+      "Each image corresponds to one PDF page",
+      "Image quality adequate for viewing"
+    ],
+    "edge_cases": [
+      "1595 pages × large PDF = significant disk space",
+      "Processing time for 1595 pages",
+      "Memory management during batch conversion",
+      "Error recovery if conversion fails mid-batch"
+    ]
+  },
+  {
+    "id": "pdf-create-page-listing",
+    "subject": "Create listing of all page images with per-page markdown files",
+    "status": "pending",
+    "description": "For each page image, create a corresponding markdown file (page_0001.md, page_0002.md, etc.) containing the page number, image filename, and viewing instructions. Create INDEX.md listing all pages.",
+    "blocking": [],
+    "blockedBy": ["pdf-split-all-pages"],
+    "effort": "small",
+    "category": "feature",
+    "acceptance": [
+      "1595 markdown files created (one per page)",
+      "Each markdown file references its image",
+      "INDEX.md created with links to all pages",
+      "Directory structure: ./pdf_pages/images/ and ./pdf_pages/text/"
+    ],
+    "edge_cases": [
+      "File system limits for 1595+ files",
+      "Path handling consistency"
+    ]
+  }
+]
