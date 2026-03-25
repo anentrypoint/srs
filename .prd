@@ -1,5 +1,28 @@
 [
   {
+    "id": "pdf-determine-target-pages",
+    "subject": "Determine and document which specific pages to extract from the PDF",
+    "status": "pending",
+    "description": "Analyze the PDF structure and explicitly list all target pages that need to be extracted. Document the page numbers, their content topics, and purpose. This ensures we only process relevant pages and have a clear scope of work.",
+    "blocking": [
+      "pdf-page-split-setup"
+    ],
+    "blockedBy": [],
+    "effort": "small",
+    "category": "infra",
+    "acceptance": [
+      "Clear list of target page numbers documented",
+      "Each page's content/topic documented",
+      "Total target page count specified",
+      "List saved to ./pdf_pages/TARGET_PAGES.md"
+    ],
+    "edge_cases": [
+      "PDF may have variable content across pages",
+      "Need to handle multi-page sections/chapters",
+      "Some pages may be appendices or notes"
+    ]
+  },
+  {
     "id": "pdf-page-split-setup",
     "subject": "Set up PDF processing infrastructure and determine page count",
     "status": "pending",
@@ -8,7 +31,7 @@
       "pdf-split-to-images",
       "pdf-extract-text"
     ],
-    "blockedBy": [],
+    "blockedBy": ["pdf-determine-target-pages"],
     "effort": "small",
     "category": "infra",
     "acceptance": [
