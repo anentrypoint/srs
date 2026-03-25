@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "id": "deep-20-topics",
+    "subject": "Deepen 20 weakest topics (200 cards)",
+    "status": "in_progress",
+    "description": "Agent running",
+    "blocking": [],
+    "blockedBy": [],
+    "effort": "large",
+    "category": "feature",
+    "acceptance": ["200 cards merged"]
+  },
+  {
+    "id": "critical-care-procedures",
+    "subject": "Critical care, ECG, procedures, geriatrics, abuse (80 cards)",
+    "status": "in_progress",
+    "description": "Agent running",
+    "blocking": [],
+    "blockedBy": [],
+    "effort": "medium",
+    "category": "feature",
+    "acceptance": ["80 cards merged"]
+  },
+  {
+    "id": "ob-peds-genetics-derm",
+    "subject": "OB/peds/genetics/dermatology depth (80 cards)",
+    "status": "in_progress",
+    "description": "Agent running",
+    "blocking": [],
+    "blockedBy": [],
+    "effort": "medium",
+    "category": "feature",
+    "acceptance": ["80 cards merged"]
+  },
+  {
+    "id": "psych-fm-specialties",
+    "subject": "Psych depth/FM/travel/ENT/ophth/uro/specialties (80 cards)",
+    "status": "in_progress",
+    "description": "Agent running",
+    "blocking": [],
+    "blockedBy": [],
+    "effort": "medium",
+    "category": "feature",
+    "acceptance": ["80 cards merged"]
+  }
+]
