@@ -1,16 +1,5 @@
 [
   {
-    "id": "fill-indigenous-health",
-    "subject": "Generate Indigenous health and cultural safety cards",
-    "status": "in_progress",
-    "description": "Agent running in background.",
-    "blocking": [],
-    "blockedBy": [],
-    "effort": "medium",
-    "category": "feature",
-    "acceptance": ["30+ cards with topicId ph-social-det or ethics-consent"]
-  },
-  {
     "id": "fill-presentations-ddx",
     "subject": "Generate common clinical presentations with systematic DDx cards",
     "status": "in_progress",
@@ -38,7 +27,7 @@
     "status": "pending",
     "description": "Merge new cards, verify all areas covered",
     "blocking": [],
-    "blockedBy": ["fill-indigenous-health", "fill-presentations-ddx", "fill-pharmacology-depth"],
+    "blockedBy": ["fill-presentations-ddx", "fill-pharmacology-depth"],
     "effort": "small",
     "category": "infra",
     "acceptance": [">2500 total cards", "Indigenous health >0"]
