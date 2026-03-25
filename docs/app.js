@@ -555,80 +555,143 @@ var go = (v, extra = {}) => {
   render();
 };
 var root = document.getElementById("app");
+var bloomClass = (b) => b === "recall" ? "bloom-recall" : b === "apply" ? "bloom-apply" : "bloom-analyze";
+var bloomLabel = (b) => b ?? "recall";
 function Loading() {
   return /* @__PURE__ */ createElement("div", {
-    class: "flex items-center justify-center min-h-screen"
+    class: "shell",
+    style: "display:flex;align-items:center;justify-content:center;min-height:100vh;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "text-center space-y-3"
-  }, /* @__PURE__ */ createElement("span", {
-    class: "loading loading-spinner loading-lg text-primary"
+    style: "text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "spinner"
   }), /* @__PURE__ */ createElement("p", {
-    class: "text-content2"
-  }, "Loading cards...")));
+    style: "color:var(--text2);font-size:0.875rem;"
+  }, "Loading 2798 cards…")));
 }
 function Dashboard() {
   const cfg = loadCfg(), stats = getStats(CARDS), dr = daysLeft(cfg);
   const gp = Math.round(Math.max(0, Math.min(100, (stats.avgEF - 1.3) / (2.5 - 1.3) * 100)));
+  const pct = (v) => Math.round(Math.max(0, Math.min(100, (v - 1.3) / (2.5 - 1.3) * 100)));
+  const grades = [["Fail", "1.3", pct(1.3)], ["Pass", "2.0", pct(2)], ["Honours", "2.5", pct(2.5)]];
   return /* @__PURE__ */ createElement("div", {
-    class: "min-h-screen bg-base-100"
+    class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
-    class: "max-w-4xl mx-auto p-6 space-y-6 fade-in"
+    class: "page"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center justify-between"
-  }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("h1", {
-    class: "text-2xl font-bold"
-  }, "MCCQE1 SRS"), /* @__PURE__ */ createElement("p", {
-    class: "text-sm text-content2"
-  }, "Spaced Repetition Study System")), /* @__PURE__ */ createElement("button", {
-    class: "btn btn-ghost btn-sm opacity-60 hover:opacity-100",
-    onclick: () => render()
-  }, "⟳")), /* @__PURE__ */ createElement("div", {
-    class: "grid grid-cols-2 sm:grid-cols-4 gap-3"
+    class: "nav"
+  }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "title"
+  }, "MCCQE1 SRS"), /* @__PURE__ */ createElement("div", {
+    class: "subtitle"
+  }, "Spaced Repetition · Canadian Medical Licensing")), /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    onclick: () => render(),
+    title: "Refresh"
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "14",
+    height: "14",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("path", {
+    d: "M1 4v6h6"
+  }), /* @__PURE__ */ createElement("path", {
+    d: "M23 20v-6h-6"
+  }), /* @__PURE__ */ createElement("path", {
+    d: "M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
+  })), "Refresh")), /* @__PURE__ */ createElement("div", {
+    class: "stat-grid",
+    style: "margin-bottom:20px;"
   }, [
-    ["Due Today", stats.due, stats.due > 0],
-    ["Total Cards", stats.total, false],
-    ["Days Left", dr, false],
-    ["Target", cfg.targetGrade, false]
-  ].map(([label, val, hi]) => /* @__PURE__ */ createElement("div", {
-    class: "card p-4 text-center space-y-1"
+    { key: "Due Today", val: stats.due, hi: stats.due > 0 },
+    { key: "Total Cards", val: stats.total, hi: false },
+    { key: "Days Left", val: dr, hi: dr <= 14 },
+    { key: "Avg Score", val: stats.avgScore != null ? stats.avgScore.toFixed(1) + "/5" : "—", hi: false }
+  ].map(({ key, val, hi }) => /* @__PURE__ */ createElement("div", {
+    class: "stat-tile" + (hi ? " hi" : "")
   }, /* @__PURE__ */ createElement("div", {
-    class: "text-3xl font-bold " + (hi ? "text-primary" : "")
+    class: "val"
   }, String(val)), /* @__PURE__ */ createElement("div", {
-    class: "text-xs text-content2 uppercase tracking-wide"
-  }, label)))), /* @__PURE__ */ createElement("div", {
-    class: "card p-5 space-y-3"
+    class: "key"
+  }, key)))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1.25rem 1.5rem;margin-bottom:20px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex justify-between items-baseline"
+    style: "display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;"
   }, /* @__PURE__ */ createElement("span", {
-    class: "font-semibold"
+    style: "font-weight:600;font-size:0.9375rem;"
   }, "Grade Progress"), /* @__PURE__ */ createElement("span", {
-    class: "text-sm text-content2"
-  }, gp, "% — EF ", stats.avgEF.toFixed(2))), /* @__PURE__ */ createElement("div", {
-    class: "relative w-full bg-base-200 rounded-full h-4"
+    style: "font-size:0.8125rem;color:var(--text2);"
+  }, "EF ", stats.avgEF.toFixed(2), " / 2.50")), /* @__PURE__ */ createElement("div", {
+    class: "prog-track",
+    style: "margin-bottom:10px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "bg-primary h-4 rounded-full prog",
-    style: "width:" + Math.max(gp, 2) + "%"
+    class: "prog-fill",
+    style: "width:" + Math.max(gp, 1) + "%"
   })), /* @__PURE__ */ createElement("div", {
-    class: "flex justify-between text-xs text-content3"
-  }, [["fail", "1.3"], ["pass", "2.0"], ["honours", "2.5"]].map(([l, v]) => /* @__PURE__ */ createElement("div", {
-    class: "text-center"
+    style: "display:flex;justify-content:space-between;"
+  }, grades.map(([label, val, pos]) => /* @__PURE__ */ createElement("div", {
+    style: "text-align:center;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "font-mono"
-  }, v), /* @__PURE__ */ createElement("div", {
-    class: "capitalize"
-  }, l))))), stats.avgScore != null && /* @__PURE__ */ createElement("p", {
-    class: "text-sm text-content2"
-  }, "Last score avg: ", /* @__PURE__ */ createElement("span", {
-    class: "font-medium text-base-content"
-  }, stats.avgScore.toFixed(1), "/5")), /* @__PURE__ */ createElement("div", {
-    class: "flex flex-wrap gap-3 pt-2"
+    style: "font-size:0.75rem;font-weight:600;color:var(--text2);"
+  }, val), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.6875rem;color:" + (pos <= gp ? "var(--accent)" : "var(--text3)") + ";text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;"
+  }, label))))), cfg.examDate && /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:12px;"
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "var(--accent)",
+    "stroke-width": "2"
+  }, /* @__PURE__ */ createElement("rect", {
+    x: "3",
+    y: "4",
+    width: "18",
+    height: "18",
+    rx: "2"
+  }), /* @__PURE__ */ createElement("line", {
+    x1: "16",
+    y1: "2",
+    x2: "16",
+    y2: "6"
+  }), /* @__PURE__ */ createElement("line", {
+    x1: "8",
+    y1: "2",
+    x2: "8",
+    y2: "6"
+  }), /* @__PURE__ */ createElement("line", {
+    x1: "3",
+    y1: "10",
+    x2: "21",
+    y2: "10"
+  })), /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.8125rem;color:var(--text2);"
+  }, "Exam ", /* @__PURE__ */ createElement("strong", {
+    style: "color:var(--text1);"
+  }, cfg.examDate), " — ", /* @__PURE__ */ createElement("strong", {
+    style: "color:var(--accent);"
+  }, dr, " days"), " remaining")), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;flex-wrap:wrap;gap:10px;align-items:center;"
   }, /* @__PURE__ */ createElement("button", {
-    class: "btn btn-lg " + (stats.due > 0 ? "btn-primary" : "btn-ghost btn-disabled"),
+    class: "btn-study" + (stats.due === 0 ? " disabled" : ""),
     onclick: () => stats.due > 0 && startSession()
-  }, stats.due > 0 ? `Study Now — ${stats.due} card${stats.due === 1 ? "" : "s"}` : "No Cards Due"), /* @__PURE__ */ createElement("div", {
-    class: "flex gap-2 ml-auto"
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("polygon", {
+    points: "5 3 19 12 5 21 5 3"
+  })), stats.due > 0 ? `Study Now — ${stats.due.toLocaleString()} card${stats.due === 1 ? "" : "s"}` : "All Caught Up"), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;gap:8px;margin-left:auto;"
   }, [["Stats", "stats"], ["Topics", "topics"], ["Config", "config"]].map(([l, v]) => /* @__PURE__ */ createElement("button", {
-    class: "btn btn-ghost btn-sm",
+    class: "btn-ghost",
     onclick: () => go(v)
   }, l))))));
 }
@@ -640,97 +703,149 @@ function startSession() {
 function Session() {
   const { session, phase } = ctx;
   const card = session.cards[session.index];
-  const progress = Math.round(session.index / session.cards.length * 100);
+  const progress = session.cards.length ? Math.round(session.index / session.cards.length * 100) : 0;
   const isLast = session.index >= session.cards.length - 1;
   if (!card)
     return SessionComplete();
+  const scoreLabels = ["", "Blank", "Wrong", "Hard", "Good", "Easy"];
+  const scoreCls = ["", "s1", "s2", "s3", "s4", "s5"];
   return /* @__PURE__ */ createElement("div", {
-    class: "min-h-screen bg-base-100"
+    class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
-    class: "max-w-2xl mx-auto p-6 space-y-6 fade-in"
+    class: "page"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center justify-between"
+    style: "display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center gap-3"
+    style: "display:flex;align-items:center;gap:12px;"
   }, /* @__PURE__ */ createElement("button", {
-    class: "btn btn-ghost btn-sm",
+    class: "btn-ghost",
     onclick: () => go("dashboard")
-  }, "← Exit"), /* @__PURE__ */ createElement("span", {
-    class: "text-sm text-content2"
-  }, session.index + 1, " / ", session.cards.length)), /* @__PURE__ */ createElement("span", {
-    class: "text-sm text-content2"
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /* @__PURE__ */ createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  })), "Exit"), /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.8125rem;color:var(--text2);"
+  }, session.index + 1, " ", /* @__PURE__ */ createElement("span", {
+    style: "color:var(--text3);"
+  }, "/ ", session.cards.length))), /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.8125rem;color:var(--text2);font-weight:600;"
   }, progress, "%")), /* @__PURE__ */ createElement("div", {
-    class: "w-full bg-base-200 rounded-full h-1.5"
+    class: "prog-track thin",
+    style: "margin-bottom:24px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "bg-primary h-1.5 rounded-full prog",
-    style: "width:" + progress + "%"
+    class: "prog-fill",
+    style: "width:" + Math.max(progress, 0.5) + "%"
   })), /* @__PURE__ */ createElement("div", {
-    class: "card p-6 space-y-4"
+    class: "gcard",
+    style: "padding:1.5rem;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center gap-2"
+    style: "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("span", {
-    class: "badge badge-ghost badge-sm font-mono"
+    class: "badge-topic"
   }, card.topicId), /* @__PURE__ */ createElement("span", {
-    class: "badge badge-ghost badge-sm"
-  }, card.bloomLevel)), /* @__PURE__ */ createElement("p", {
-    class: "text-lg font-medium leading-relaxed card-text"
+    class: "badge-bloom " + bloomClass(card.bloomLevel)
+  }, bloomLabel(card.bloomLevel)), card.difficulty && /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.6875rem;color:var(--text3);margin-left:4px;"
+  }, "★".repeat(card.difficulty) + "☆".repeat(5 - card.difficulty))), /* @__PURE__ */ createElement("p", {
+    class: "card-question"
   }, card.question)), phase === "question" && /* @__PURE__ */ createElement("button", {
-    class: "btn btn-primary w-full",
+    class: "btn-reveal",
     onclick: () => go("session", { phase: "answer" })
   }, "Reveal Answer"), phase === "answer" && /* @__PURE__ */ createElement("div", {
-    class: "card p-5 space-y-4 fade-in"
-  }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("p", {
-    class: "text-xs text-content2 mb-2 uppercase tracking-wide"
+    class: "gcard-inner fade-in",
+    style: "padding:1.25rem;"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "margin-bottom:1rem;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:8px;"
   }, "Answer"), /* @__PURE__ */ createElement("p", {
-    class: "text-base leading-relaxed card-text"
-  }, card.answer)), card.explanation && /* @__PURE__ */ createElement("div", {
-    class: "border-t border-base-200 pt-3"
-  }, /* @__PURE__ */ createElement("p", {
-    class: "text-xs text-content2 mb-1 uppercase tracking-wide"
+    class: "card-answer"
+  }, card.answer)), card.explanation && /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "divider"
+  }), /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:8px;"
   }, "Explanation"), /* @__PURE__ */ createElement("p", {
-    class: "text-sm text-content2 leading-relaxed card-text"
+    class: "card-explain"
   }, card.explanation)), /* @__PURE__ */ createElement("div", {
-    class: "border-t border-base-200 pt-4 space-y-2"
-  }, /* @__PURE__ */ createElement("p", {
-    class: "text-sm text-content2 mb-3"
+    class: "divider"
+  }), /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:10px;"
   }, "How well did you know this?"), /* @__PURE__ */ createElement("div", {
-    class: "grid grid-cols-5 gap-2"
+    class: "score-grid"
   }, [1, 2, 3, 4, 5].map((score) => /* @__PURE__ */ createElement("button", {
-    class: "btn btn-sm flex-col h-auto py-2 " + (score <= 2 ? "btn-error" : score === 3 ? "btn-warning" : "btn-success"),
+    class: "score-btn " + scoreCls[score],
     onclick: () => {
       updateCard(card.id, score);
       session.results.push({ cardId: card.id, score });
       if (isLast)
-        go("session_complete", { lastResults: session.results });
+        go("session_complete", { lastResults: [...session.results] });
       else {
         session.index++;
         go("session", { phase: "question" });
       }
     }
   }, /* @__PURE__ */ createElement("span", {
-    class: "font-bold text-base"
+    class: "num"
   }, score), /* @__PURE__ */ createElement("span", {
-    class: "text-xs opacity-80"
-  }, ["", "Blank", "Wrong", "Hard", "Good", "Easy"][score]))))))));
+    class: "lbl"
+  }, scoreLabels[score])))))));
 }
 function SessionComplete() {
   const results = ctx.lastResults ?? ctx.session?.results ?? [];
   const avg = results.length ? (results.reduce((s, r) => s + r.score, 0) / results.length).toFixed(1) : "—";
   const correct = results.filter((r) => r.score >= 4).length;
+  const pct = results.length ? Math.round(correct / results.length * 100) : 0;
   return /* @__PURE__ */ createElement("div", {
-    class: "min-h-screen flex items-center justify-center"
+    class: "shell",
+    style: "display:flex;align-items:center;justify-content:center;min-height:100vh;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "card p-8 text-center space-y-4 max-w-sm fade-in"
-  }, /* @__PURE__ */ createElement("p", {
-    class: "text-xl font-semibold"
+    class: "gcard fade-in",
+    style: "padding:2.5rem;max-width:400px;width:100%;text-align:center;"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "font-size:2.5rem;margin-bottom:12px;"
+  }, "\uD83C\uDF89"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.375rem;font-weight:700;margin-bottom:6px;"
   }, "Session Complete"), /* @__PURE__ */ createElement("div", {
-    class: "grid grid-cols-3 gap-3"
-  }, [["Cards", results.length, "text-primary"], ["Correct", correct, "text-success"], ["Avg", avg, ""]].map(([l, v, cls]) => /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
-    class: "text-2xl font-bold " + cls
-  }, String(v)), /* @__PURE__ */ createElement("div", {
-    class: "text-xs text-content2"
-  }, l)))), /* @__PURE__ */ createElement("button", {
-    class: "btn btn-primary w-full",
+    style: "font-size:0.875rem;color:var(--text2);margin-bottom:1.75rem;"
+  }, pct, "% correct — great work"), /* @__PURE__ */ createElement("div", {
+    class: "complete-grid"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "complete-stat"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "v",
+    style: "color:var(--accent);"
+  }, results.length), /* @__PURE__ */ createElement("div", {
+    class: "k"
+  }, "Cards")), /* @__PURE__ */ createElement("div", {
+    class: "complete-stat"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "v",
+    style: "color:var(--success);"
+  }, correct), /* @__PURE__ */ createElement("div", {
+    class: "k"
+  }, "Correct")), /* @__PURE__ */ createElement("div", {
+    class: "complete-stat"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "v"
+  }, avg), /* @__PURE__ */ createElement("div", {
+    class: "k"
+  }, "Avg Score"))), /* @__PURE__ */ createElement("button", {
+    class: "btn-study",
+    style: "width:100%;justify-content:center;",
     onclick: () => go("dashboard")
   }, "Back to Dashboard")));
 }
@@ -751,42 +866,69 @@ function Stats() {
     t.ef = (t.ef / t.total).toFixed(2);
   const rows = Object.entries(byTopic).sort((a, b) => b[1].due - a[1].due);
   return /* @__PURE__ */ createElement("div", {
-    class: "min-h-screen bg-base-100"
+    class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
-    class: "max-w-4xl mx-auto p-6 space-y-6 fade-in"
+    class: "page-wide"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center gap-3"
+    class: "nav"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:12px;"
   }, /* @__PURE__ */ createElement("button", {
-    class: "btn btn-ghost btn-sm",
+    class: "btn-ghost",
     onclick: () => go("dashboard")
-  }, "← Back"), /* @__PURE__ */ createElement("h2", {
-    class: "text-xl font-bold"
-  }, "Statistics")), /* @__PURE__ */ createElement("div", {
-    class: "grid grid-cols-2 sm:grid-cols-4 gap-3"
-  }, [["Total", stats.total], ["Due", stats.due], ["Avg EF", stats.avgEF.toFixed(2)], ["Avg Score", stats.avgScore?.toFixed(1) ?? "—"]].map(([l, v]) => /* @__PURE__ */ createElement("div", {
-    class: "card p-4 text-center space-y-1"
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /* @__PURE__ */ createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  })), "Back"), /* @__PURE__ */ createElement("span", {
+    class: "title",
+    style: "font-size:1.25rem;"
+  }, "Statistics"))), /* @__PURE__ */ createElement("div", {
+    class: "stat-grid",
+    style: "margin-bottom:24px;"
+  }, [
+    { k: "Total Cards", v: stats.total },
+    { k: "Due Today", v: stats.due },
+    { k: "Avg EF", v: stats.avgEF.toFixed(2) },
+    { k: "Avg Score", v: stats.avgScore?.toFixed(1) ?? "—" }
+  ].map(({ k, v }) => /* @__PURE__ */ createElement("div", {
+    class: "stat-tile"
   }, /* @__PURE__ */ createElement("div", {
-    class: "text-2xl font-bold"
+    class: "val"
   }, String(v)), /* @__PURE__ */ createElement("div", {
-    class: "text-xs text-content2 uppercase tracking-wide"
-  }, l)))), /* @__PURE__ */ createElement("div", {
-    class: "card overflow-hidden"
+    class: "key"
+  }, k)))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "overflow:hidden;"
   }, /* @__PURE__ */ createElement("table", {
-    class: "table w-full text-sm"
+    class: "data-table"
   }, /* @__PURE__ */ createElement("thead", null, /* @__PURE__ */ createElement("tr", null, /* @__PURE__ */ createElement("th", null, "Topic"), /* @__PURE__ */ createElement("th", {
-    class: "text-right"
+    class: "r"
   }, "Cards"), /* @__PURE__ */ createElement("th", {
-    class: "text-right"
+    class: "r"
   }, "Due"), /* @__PURE__ */ createElement("th", {
-    class: "text-right"
+    class: "r"
   }, "Avg EF"))), /* @__PURE__ */ createElement("tbody", null, rows.map(([tid, t]) => /* @__PURE__ */ createElement("tr", null, /* @__PURE__ */ createElement("td", {
-    class: "font-mono text-xs"
+    style: "font-family:'SF Mono','Fira Code',monospace;font-size:0.8125rem;color:var(--text2);"
   }, tid), /* @__PURE__ */ createElement("td", {
-    class: "text-right"
+    class: "r",
+    style: "color:var(--text2);"
   }, t.total), /* @__PURE__ */ createElement("td", {
-    class: "text-right " + (t.due > 0 ? "text-primary font-medium" : "")
+    class: "r",
+    style: t.due > 0 ? "color:var(--accent);font-weight:600;" : "color:var(--text3);"
   }, t.due), /* @__PURE__ */ createElement("td", {
-    class: "text-right"
+    class: "r",
+    style: "color:var(--text3);"
   }, t.ef))))))));
 }
 function Topics() {
@@ -795,93 +937,136 @@ function Topics() {
     byTopic[c.topicId] = (byTopic[c.topicId] || 0) + 1;
   const topics = Object.entries(byTopic).sort((a, b) => b[1] - a[1]);
   return /* @__PURE__ */ createElement("div", {
-    class: "min-h-screen bg-base-100"
+    class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
-    class: "max-w-4xl mx-auto p-6 space-y-6 fade-in"
+    class: "page-wide"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center gap-3"
+    class: "nav"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:12px;"
   }, /* @__PURE__ */ createElement("button", {
-    class: "btn btn-ghost btn-sm",
+    class: "btn-ghost",
     onclick: () => go("dashboard")
-  }, "← Back"), /* @__PURE__ */ createElement("h2", {
-    class: "text-xl font-bold"
-  }, "Topics (", topics.length, ")")), /* @__PURE__ */ createElement("div", {
-    class: "grid grid-cols-2 sm:grid-cols-3 gap-2"
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /* @__PURE__ */ createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  })), "Back"), /* @__PURE__ */ createElement("span", {
+    class: "title",
+    style: "font-size:1.25rem;"
+  }, "Topics ", /* @__PURE__ */ createElement("span", {
+    style: "color:var(--text3);font-size:0.875rem;font-weight:400;"
+  }, "(", topics.length, ")")))), /* @__PURE__ */ createElement("div", {
+    class: "topic-grid"
   }, topics.map(([tid, count]) => /* @__PURE__ */ createElement("div", {
-    class: "card p-3 flex items-center justify-between"
+    class: "topic-chip"
   }, /* @__PURE__ */ createElement("span", {
-    class: "font-mono text-xs text-content2"
+    class: "tid"
   }, tid), /* @__PURE__ */ createElement("span", {
-    class: "badge badge-ghost badge-sm"
+    class: "cnt"
   }, count))))));
 }
 function Config() {
   const cfg = loadCfg();
   let examEl, minsEl;
   return /* @__PURE__ */ createElement("div", {
-    class: "min-h-screen bg-base-100"
+    class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
-    class: "max-w-xl mx-auto p-6 space-y-6 fade-in"
+    class: "page",
+    style: "max-width:520px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center gap-3"
+    class: "nav"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:12px;"
   }, /* @__PURE__ */ createElement("button", {
-    class: "btn btn-ghost btn-sm",
+    class: "btn-ghost",
     onclick: () => go("dashboard")
-  }, "← Back"), /* @__PURE__ */ createElement("h2", {
-    class: "text-xl font-bold"
-  }, "Config")), /* @__PURE__ */ createElement("div", {
-    class: "card p-5 space-y-4"
+  }, /* @__PURE__ */ createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2.5"
+  }, /* @__PURE__ */ createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /* @__PURE__ */ createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  })), "Back"), /* @__PURE__ */ createElement("span", {
+    class: "title",
+    style: "font-size:1.25rem;"
+  }, "Settings"))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1.5rem;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "space-y-1"
-  }, /* @__PURE__ */ createElement("label", {
-    class: "text-sm text-content2 uppercase tracking-wide"
-  }, "Exam Date"), /* @__PURE__ */ createElement("input", {
+    style: "display:flex;flex-direction:column;gap:16px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "field"
+  }, /* @__PURE__ */ createElement("label", null, "Exam Date"), /* @__PURE__ */ createElement("input", {
     type: "date",
-    class: "input w-full",
     value: cfg.examDate,
     ref: (e) => examEl = e
   })), /* @__PURE__ */ createElement("div", {
-    class: "space-y-1"
-  }, /* @__PURE__ */ createElement("label", {
-    class: "text-sm text-content2 uppercase tracking-wide"
-  }, "Daily Study Minutes"), /* @__PURE__ */ createElement("input", {
+    class: "field"
+  }, /* @__PURE__ */ createElement("label", null, "Daily Study Minutes"), /* @__PURE__ */ createElement("input", {
     type: "number",
-    class: "input w-full",
     min: "10",
     max: "360",
     value: String(cfg.dailyStudyMinutes),
     ref: (e) => minsEl = e
-  })), /* @__PURE__ */ createElement("div", {
-    class: "flex gap-3 pt-2"
+  }))), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;gap:10px;margin-top:20px;"
   }, /* @__PURE__ */ createElement("button", {
-    class: "btn btn-primary flex-1",
+    class: "btn-study",
+    style: "flex:1;justify-content:center;padding:0.75rem;",
     onclick: () => {
       saveCfg({ ...cfg, examDate: examEl.value || cfg.examDate, dailyStudyMinutes: parseInt(minsEl.value) || cfg.dailyStudyMinutes });
       go("dashboard");
     }
-  }, "Save"), /* @__PURE__ */ createElement("button", {
-    class: "btn btn-error btn-outline",
+  }, "Save Settings"), /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: "color:#f87171;border-color:rgba(239,68,68,0.25);",
     onclick: () => {
       if (confirm("Reset all SRS progress? This cannot be undone.")) {
         localStorage.removeItem(SK);
         go("dashboard");
       }
     }
-  }, "Reset Progress"))), /* @__PURE__ */ createElement("div", {
-    class: "card p-4 space-y-2"
-  }, /* @__PURE__ */ createElement("p", {
-    class: "text-sm font-medium"
-  }, "Data Storage"), /* @__PURE__ */ createElement("p", {
-    class: "text-xs text-content2"
-  }, "All SRS progress is stored in your browser's localStorage. No account or server required."), /* @__PURE__ */ createElement("p", {
-    class: "text-xs text-content2"
-  }, "Cards: ", CARDS.length, " loaded · States: ", Object.keys(loadStates()).length, " tracked"))));
+  }, "Reset"))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1.25rem;"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.8125rem;font-weight:600;margin-bottom:8px;"
+  }, "Data Storage"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.8125rem;color:var(--text2);line-height:1.6;margin-bottom:10px;"
+  }, "All SRS progress is stored in your browser's localStorage. No account or server required. Your data never leaves your device."), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;gap:16px;"
+  }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.125rem;font-weight:700;"
+  }, CARDS.length.toLocaleString()), /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "Cards loaded")), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.125rem;font-weight:700;"
+  }, Object.keys(loadStates()).length.toLocaleString()), /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "States tracked"))))));
 }
 function render() {
   const node = view === "loading" ? Loading() : view === "session" || view === "session_complete" ? Session() : view === "stats" ? Stats() : view === "topics" ? Topics() : view === "config" ? Config() : Dashboard();
-  applyDiff(root, /* @__PURE__ */ createElement("div", {
-    class: "min-h-screen bg-base-100 text-base-content"
-  }, node));
+  applyDiff(root, /* @__PURE__ */ createElement("div", null, node));
 }
 render();
 fetch("cards.json").then((r) => r.json()).then((cards) => {
@@ -889,14 +1074,18 @@ fetch("cards.json").then((r) => r.json()).then((cards) => {
   go("dashboard");
 }).catch((err) => {
   applyDiff(root, /* @__PURE__ */ createElement("div", {
-    class: "flex items-center justify-center min-h-screen"
+    class: "shell",
+    style: "display:flex;align-items:center;justify-content:center;min-height:100vh;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "card p-8 text-center space-y-4 max-w-sm"
-  }, /* @__PURE__ */ createElement("p", {
-    class: "text-error text-lg font-medium"
-  }, "Failed to load cards"), /* @__PURE__ */ createElement("p", {
-    class: "text-content2 text-sm"
-  }, err.message), /* @__PURE__ */ createElement("p", {
-    class: "text-content3 text-xs"
+    class: "gcard fade-in",
+    style: "padding:2rem;max-width:380px;text-align:center;"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "font-size:2rem;margin-bottom:12px;"
+  }, "⚠️"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.125rem;font-weight:600;margin-bottom:8px;"
+  }, "Failed to load cards"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.875rem;color:var(--text2);margin-bottom:6px;"
+  }, err.message), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.75rem;color:var(--text3);"
   }, "Must be served over HTTP — not opened as a file://"))));
 });
