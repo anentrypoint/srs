@@ -1,63 +1,65 @@
 [
   {
-    "id": "pdf-install-pdf-tools",
-    "subject": "Install PDF-to-image conversion library",
+    "id": "pdf-manual-inspection",
+    "subject": "Manually inspect PDF and explicitly list target pages",
     "status": "pending",
-    "description": "Install pdf2image or similar to convert PDF pages to image files. Test on sample page.",
-    "blocking": ["pdf-split-all-pages"],
+    "description": "Open Toronto Notes 2025.pdf and manually inspect pages to understand content structure. Explicitly decide which pages to extract (all 1595 or selective chapters/sections). Document decision in TARGET_PAGES.md with reasoning.",
+    "blocking": ["pdf-split-target-pages"],
     "blockedBy": [],
-    "effort": "small",
+    "effort": "large",
     "category": "infra",
     "acceptance": [
-      "PDF conversion library installed (pdf2image with poppler)",
-      "Sample page conversion tested successfully",
-      "Output format determined (PNG/JPEG)"
+      "PDF opened and manually reviewed",
+      "Explicit list of target page ranges documented",
+      "Each range has clear topic/purpose",
+      "Decision saved to ./pdf_pages/TARGET_PAGES.md",
+      "Total target page count specified"
     ],
     "edge_cases": [
-      "pdf2image requires poppler on Windows",
-      "Poppler installation via chocolatey or direct download"
+      "PDF may be very large (1595 pages) - requires patient review",
+      "Manual selection requires understanding content structure",
+      "May discover pages that should not be extracted"
     ]
   },
   {
-    "id": "pdf-split-all-pages",
-    "subject": "Split PDF into individual page images (1595 pages)",
+    "id": "pdf-split-target-pages",
+    "subject": "Extract only the explicitly selected target pages as individual images",
     "status": "pending",
-    "description": "Convert all 1595 pages of Toronto Notes 2025.pdf into individual image files. Output: page_0001.png, page_0002.png, ... page_1595.png in ./pdf_pages/images/",
-    "blocking": ["pdf-create-page-listing"],
-    "blockedBy": ["pdf-install-pdf-tools"],
-    "effort": "large",
+    "description": "For each page range in TARGET_PAGES.md, extract individual pages as image files. Naming: page_XXXX.png. Store in ./pdf_pages/images/",
+    "blocking": ["pdf-create-markdown-listing"],
+    "blockedBy": ["pdf-manual-inspection"],
+    "effort": "medium",
     "category": "feature",
     "acceptance": [
-      "All 1595 images created with sequential numbering",
-      "Images stored in ./pdf_pages/images/",
-      "Each image corresponds to one PDF page",
-      "Image quality adequate for viewing"
+      "Target pages extracted as individual image files",
+      "Correct number of images created",
+      "Sequential naming applied",
+      "All images in ./pdf_pages/images/"
     ],
     "edge_cases": [
-      "1595 pages × large PDF = significant disk space",
-      "Processing time for 1595 pages",
-      "Memory management during batch conversion",
-      "Error recovery if conversion fails mid-batch"
+      "Page range parsing and validation",
+      "Disk space for selected images",
+      "Conversion quality and format consistency"
     ]
   },
   {
-    "id": "pdf-create-page-listing",
-    "subject": "Create listing of all page images with per-page markdown files",
+    "id": "pdf-create-markdown-listing",
+    "subject": "Create markdown file for each extracted page image",
     "status": "pending",
-    "description": "For each page image, create a corresponding markdown file (page_0001.md, page_0002.md, etc.) containing the page number, image filename, and viewing instructions. Create INDEX.md listing all pages.",
+    "description": "For each extracted page image, create a corresponding markdown file (page_XXXX.md) with page number, image filename reference, and basic metadata. Create INDEX.md with links to all extracted pages.",
     "blocking": [],
-    "blockedBy": ["pdf-split-all-pages"],
+    "blockedBy": ["pdf-split-target-pages"],
     "effort": "small",
     "category": "feature",
     "acceptance": [
-      "1595 markdown files created (one per page)",
+      "One markdown file per extracted page",
       "Each markdown file references its image",
-      "INDEX.md created with links to all pages",
-      "Directory structure: ./pdf_pages/images/ and ./pdf_pages/text/"
+      "INDEX.md created with navigation",
+      "Consistent file structure"
     ],
     "edge_cases": [
-      "File system limits for 1595+ files",
-      "Path handling consistency"
+      "File naming consistency",
+      "Path references accuracy"
     ]
   }
 ]
