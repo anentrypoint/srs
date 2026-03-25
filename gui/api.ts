@@ -4,6 +4,7 @@ import { loadConfig, deriveConfig, setConfigKey } from '../src/config.js';
 import { activeSyllabus, listSyllabi } from '../src/syllabus/loader.js';
 import { getDueCards, updateCard, getScheduleStats } from '../src/scheduler/index.js';
 import { generateCardsForTopic } from '../src/cards/generator.js';
+import { loadCards } from '../src/cards/store.js';
 import { generateDailyPlan } from '../src/daily/planner.js';
 import { SRSProtocol } from '../src/acp/index.js';
 import { validateCoverage } from './validate.ts';
@@ -40,23 +41,22 @@ export async function handleAPI(req: Request, path: string): Promise<Response | 
   if (path === '/api/topics' && method === 'GET') return respond(req, activeSyllabus().loadTopics());
 
   if (path === '/api/cards' && method === 'GET') {
-    try { const { data } = await db().from('cards').select('*'); return respond(req, data ?? []); }
+    try { return respond(req, loadCards()); }
     catch { return respond(req, []); }
   }
 
   if (path === '/api/stats' && method === 'GET') {
     try {
-      const { data: cards } = await db().from('cards').select('id');
-      const ids = (cards ?? []).map((c: any) => c.id);
+      const ids = loadCards().map((c: any) => c.id);
       return respond(req, { ...getScheduleStats(ids), dueCount: getDueCards(ids).length });
     } catch { return respond(req, { total: 0, dueCount: 0, avgEaseFactor: 1.3, avgLastScore: null }); }
   }
 
   if (path === '/api/due' && method === 'GET') {
     try {
-      const { data: cards } = await db().from('cards').select('*');
-      const ids = getDueCards((cards ?? []).map((c: any) => c.id));
-      return respond(req, (cards ?? []).filter((c: any) => ids.includes(c.id)));
+      const cards = loadCards();
+      const ids = getDueCards(cards.map((c: any) => c.id));
+      return respond(req, cards.filter((c: any) => ids.includes(c.id)));
     } catch { return respond(req, []); }
   }
 
@@ -73,8 +73,20 @@ export async function handleAPI(req: Request, path: string): Promise<Response | 
     (async () => {
       try {
         const r = await generateCardsForTopic(topicId, count ?? 8);
-        let total = 0;
-        try { const { data: cards } = await db().from('cards').select('*'); total = cards?.length ?? 0; } catch {}
+        const allCards = loadCards();
+        const total = allCards.length;
+        try {
+          const newCards = allCards.filter((c: any) => r.ids.includes(c.id));
+          if (newCards.length) {
+            const { data: existing } = await db().from('cards').select('id');
+            const existingIds = new Set((existing ?? []).map((row: any) => row.id));
+            const toInsert = newCards.filter((c: any) => !existingIds.has(c.id));
+            if (toInsert.length) {
+              const { error } = await db().from('cards').insert(toInsert);
+              if (error) console.error('[api/generate] busybase insert error:', error);
+            }
+          }
+        } catch (e: any) { console.error('[api/generate] busybase sync failed:', e.message); }
         await writer.write(enc({ done: true, generated: r.generated, total }));
       } catch (e: any) { await writer.write(enc({ error: e.message })); }
       finally { writer.close(); }
@@ -96,11 +108,8 @@ export async function handleAPI(req: Request, path: string): Promise<Response | 
   }
 
   if (path === '/api/validate' && method === 'GET') {
-    try {
-      let cards: any[] = [];
-      try { const { data } = await db().from('cards').select('*'); cards = data ?? []; } catch {}
-      return respond(req, await validateCoverage(cards));
-    } catch (e: any) { return respond(req, { error: e.message }, 500); }
+    try { return respond(req, await validateCoverage(loadCards())); }
+    catch (e: any) { return respond(req, { error: e.message }, 500); }
   }
 
   if (path === '/api/converse' && method === 'GET') {
@@ -109,8 +118,7 @@ export async function handleAPI(req: Request, path: string): Promise<Response | 
 
   if (path === '/api/converse/start' && method === 'POST') {
     try {
-      let topicIds: string[] = [];
-      try { const { data: cards } = await db().from('cards').select('id,topicId'); topicIds = (cards ?? []).map((c: any) => c.topicId); } catch {}
+      const topicIds: string[] = loadCards().map((c: any) => c.topicId);
       return respond(req, await converseStart(topicIds));
     } catch (e: any) { return respond(req, { error: e.message }, 500); }
   }

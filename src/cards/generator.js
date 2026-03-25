@@ -28,7 +28,7 @@ export async function generateCardsForTopic(topicId, count = 10) {
   });
 
   const prompt = s.interpolate('generator', { count, topicName: topic.name, groupValue, extrasDesc });
-  const result = await acp.processLoop(prompt);
+  const result = await acp.processLoop(prompt, { timeout: 300000 });
 
   if (savedCards.length === 0) {
     const extracted = acp.extractJSON(result);
@@ -40,14 +40,24 @@ export async function generateCardsForTopic(topicId, count = 10) {
   return { topicId, generated: savedCards.length, ids: savedCards };
 }
 
-export async function generateAllTopics(countPerTopic = 8) {
-  const topics = activeSyllabus().loadTopics();
+function countForTopic(topic) {
+  const ef = topic.examFrequency ?? 0.04;
+  if (ef >= 0.07) return 20;
+  if (ef >= 0.05) return 15;
+  if (ef >= 0.04) return 10;
+  return 7;
+}
+
+export async function generateAllTopics() {
+  const syllabus = activeSyllabus();
+  const topics = syllabus.loadTopics();
   if (!topics.length) { console.error('No topics in active syllabus'); return []; }
   const results = [];
   for (const topic of topics) {
-    const r = await generateCardsForTopic(topic.id, countPerTopic);
+    const count = countForTopic(topic);
+    const r = await generateCardsForTopic(topic.id, count);
     results.push(r);
-    console.error(`Generated ${r.generated} cards for ${topic.name}`);
+    console.error(`[${results.length}/${topics.length}] ${topic.name}: ${r.generated} new cards (target: ${count})`);
   }
   return results;
 }
