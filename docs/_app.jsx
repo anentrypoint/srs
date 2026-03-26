@@ -582,37 +582,29 @@ ${cardsJson}
 
 ## End-of-Session Output
 
-When done (all cards covered OR student ends early), produce TWO things in order:
+When the session is complete (all cards covered OR student ends early), your FINAL message must contain ONLY the output block below — no other text, no commentary, no summary. This makes it easy for the student to copy your entire last message and paste it into their app.
 
-### 1. Score Block (for auto-import)
-Output a score block the student can copy-paste into their app. Use EXACTLY this format:
+Tell the student: "We're done — copy my next message and paste it into your SRS app." Then send a new message containing ONLY this:
 
 <!-- SRS_SCORES -->
 card-id: score
 card-id: score
-...
+(one line per card, exact IDs from the JSON above)
+<!-- SRS_META -->
+weakAreas: topic1, topic2
+strongAreas: topic3, topic4
+avgScore: 3.5
+recommendation: one-line focus for next session
+difficulty: increase|maintain|decrease
 
-One line per card. Use the exact card IDs from the JSON above. Scores 1-5:
+Scoring guide:
 - 5 = instant correct, high confidence
 - 4 = correct with minor hesitation
 - 3 = got it after a hint
 - 2 = partially correct, needed help
 - 1 = didn't know, had to be taught
 
-Include ALL cards — even ones not reached (score those 1).
-
-### 2. Session Metadata (for app import)
-Immediately after the scores, on the same block, add a metadata section:
-
-<!-- SRS_META -->
-weakAreas: topic1, topic2
-strongAreas: topic3, topic4
-avgScore: 3.5
-recommendation: brief one-line focus for next session
-difficulty: increase|maintain|decrease
-
-### 3. Verbal Summary
-After the score and metadata blocks, give a brief summary: what they nailed, what needs work, what to focus on next. Tell them: "Copy everything from the scores down and paste it into your SRS app — it will auto-import your scores and recommendations. Or score manually if you prefer."
+Include ALL ${sessionCards.length} cards. Score un-reached cards as 1. The entire message must be ONLY the block above — no prose, no markdown, no explanation. The student's app will parse it automatically.
 
 ## Begin
 
