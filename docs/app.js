@@ -1133,14 +1133,16 @@ function Config() {
     class: "label-xs"
   }, "States tracked"))))));
 }
-function buildPrompt(cards, cfg) {
+var SESSION_SIZE = 25;
+function buildPrompt(cards, cfg, sessionIndex = 0) {
   const states = loadStates();
   const due = getDue(cards);
   const dr = daysLeft(cfg);
   const { perDay, auto } = calcNewPerDay(cards, states, cfg);
   const reviews = due.filter((c) => isSeen(states, c.id));
   const newCards = due.filter((c) => !isSeen(states, c.id));
-  const sessionCards = due;
+  const totalSessions = Math.ceil(due.length / SESSION_SIZE);
+  const sessionCards = due.slice(sessionIndex * SESSION_SIZE, (sessionIndex + 1) * SESSION_SIZE);
   const byTopic = {};
   sessionCards.forEach((c) => {
     const t = c.topicId || c.tags?.[0] || "general";
@@ -1150,11 +1152,11 @@ function buildPrompt(cards, cfg) {
   const topicSummary = Object.entries(byTopic).map(([t, cs]) => `- ${t}: ${cs.length} cards`).join(`
 `);
   const cardsJson = JSON.stringify(sessionCards.map((c) => ({ id: c.id, question: c.question, answer: c.answer, difficulty: c.difficulty, tags: c.tags, bloomLevel: c.bloomLevel, explanation: c.explanation })), null, 2);
-  return `# MCCQE1 Daily Interactive Study Session
+  return `# MCCQE1 Study Session ${sessionIndex + 1} of ${totalSessions} today
 
-You are an expert medical education tutor preparing a student for the MCCQE Part 1 exam on ${cfg.examDate}. There are ${dr} days remaining. The student must master ${cards.length.toLocaleString()} flashcards by then.
+You are an expert medical education tutor preparing a student for the MCCQE Part 1 exam on ${cfg.examDate}. There are ${dr} days remaining. The student must master ${cards.length.toLocaleString()} flashcards total, doing ~${perDay} new cards/day to finish on time.
 
-## Today's Session: ${sessionCards.length} cards (${reviews.length} reviews + ${newCards.length} new)
+## This Session: ${sessionCards.length} cards (session ${sessionIndex + 1}/${totalSessions} for today — ${due.length} total due)
 
 ### Topics Today
 ${topicSummary}
@@ -1247,7 +1249,9 @@ function Prompt() {
   const { perDay } = calcNewPerDay(CARDS, states, cfg);
   const reviews = due.filter((c) => isSeen(states, c.id));
   const newCards = due.filter((c) => !isSeen(states, c.id));
-  const filled = buildPrompt(CARDS, cfg);
+  const totalSessions = Math.ceil(due.length / SESSION_SIZE);
+  const sessionIdx = ctx.sessionIdx || 0;
+  const filled = buildPrompt(CARDS, cfg, sessionIdx);
   return /* @__PURE__ */ createElement("div", {
     class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
@@ -1286,27 +1290,47 @@ function Prompt() {
     style: "display:flex;flex-wrap:wrap;gap:16px;"
   }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
-  }, "Reviews"), /* @__PURE__ */ createElement("div", {
-    style: "font-size:1.25rem;font-weight:700;color:var(--accent);"
-  }, reviews.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
-    class: "label-xs"
-  }, "New Cards"), /* @__PURE__ */ createElement("div", {
-    style: "font-size:1.25rem;font-weight:700;color:var(--success);"
-  }, newCards.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
-    class: "label-xs"
-  }, "Session Total"), /* @__PURE__ */ createElement("div", {
+  }, "Today's Load"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;"
-  }, due.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+  }, due.length, " cards")), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "Sessions"), /* @__PURE__ */ createElement("div", {
+    style: "font-size:1.25rem;font-weight:700;"
+  }, totalSessions, " × ", SESSION_SIZE)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
   }, "Days to Exam"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;"
   }, dr)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
-  }, "Pace (new/day)"), /* @__PURE__ */ createElement("div", {
+  }, "Pace"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;"
-  }, perDay))), /* @__PURE__ */ createElement("div", {
+  }, perDay, " new/day"))), /* @__PURE__ */ createElement("div", {
     style: "font-size:0.75rem;color:var(--text3);margin-top:8px;"
-  }, CARDS.length.toLocaleString(), " total · ", calcNewPerDay(CARDS, states, cfg).unseen.toLocaleString(), " unseen · ", calcNewPerDay(CARDS, states, cfg).deadline, " study days left")), /* @__PURE__ */ createElement("div", {
+  }, calcNewPerDay(CARDS, states, cfg).unseen.toLocaleString(), " unseen of ", CARDS.length.toLocaleString(), " · ", calcNewPerDay(CARDS, states, cfg).deadline, " study days · ", reviews.length, " reviews + ", newCards.length, " new today")), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:10px;margin-bottom:16px;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: sessionIdx === 0 ? "opacity:0.3;pointer-events:none;" : "",
+    onclick: () => {
+      ctx.sessionIdx = sessionIdx - 1;
+      ctx.copied = false;
+      render();
+    }
+  }, "← Prev"), /* @__PURE__ */ createElement("div", {
+    style: "flex:1;text-align:center;"
+  }, /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.9375rem;font-weight:600;"
+  }, "Session ", sessionIdx + 1, " of ", totalSessions), /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.75rem;color:var(--text3);margin-left:8px;"
+  }, "(", Math.min(SESSION_SIZE, due.length - sessionIdx * SESSION_SIZE), " cards)")), /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: sessionIdx >= totalSessions - 1 ? "opacity:0.3;pointer-events:none;" : "",
+    onclick: () => {
+      ctx.sessionIdx = sessionIdx + 1;
+      ctx.copied = false;
+      render();
+    }
+  }, "Next →")), /* @__PURE__ */ createElement("div", {
     style: "display:flex;gap:10px;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("button", {
     class: "btn-study",
