@@ -285,7 +285,7 @@ function Session() {
                   onclick={() => {
                     updateCard(card.id, score);
                     session.results.push({ cardId: card.id, score });
-                    if (isLast) go('session_complete', { lastResults: [...session.results] });
+                    if (isLast) { session.index++; go('session_complete', { lastResults: [...session.results] }); }
                     else { session.index++; go('session', { phase: 'question' }); }
                   }}>
                   <span class="num">{score}</span>
