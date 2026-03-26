@@ -18,26 +18,46 @@ function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return d
 const SK = 'mccqe1_states', CK = 'mccqe1_cfg';
 const loadStates = () => { try { return JSON.parse(localStorage.getItem(SK) || '{}'); } catch { return {}; } };
 const saveStates = s => localStorage.setItem(SK, JSON.stringify(s));
-const loadCfg = () => ({ examDate: '2026-06-15', dailyStudyMinutes: 60, targetGrade: 'pass', ...JSON.parse(localStorage.getItem(CK) || '{}') });
+const loadCfg = () => ({ examDate: '2026-06-15', dailyStudyMinutes: 60, newCardsPerDay: 20, targetGrade: 'pass', ...JSON.parse(localStorage.getItem(CK) || '{}') });
 const saveCfg = c => localStorage.setItem(CK, JSON.stringify(c));
 const daysLeft = cfg => cfg.examDate ? Math.max(0, Math.ceil((new Date(cfg.examDate) - new Date()) / 86400000)) : 999;
 
 // ─── SRS ─────────────────────────────────────────────────────────────────────
-const isDue = (states, id) => (states[id]?.dueDate ?? today()) <= today();
-const getDue = cards => { const s = loadStates(); return cards.filter(c => isDue(s, c.id)); };
+const isSeen = (states, id) => !!states[id]?.lastScore;
+const isReviewDue = (states, id) => isSeen(states, id) && states[id].dueDate <= today();
+function getNewCardsToday(cards, states, cfg) {
+  const perDay = cfg.newCardsPerDay || 20;
+  // Count how many new cards were introduced today
+  const t = today();
+  const introducedToday = cards.filter(c => states[c.id]?.introducedOn === t).length;
+  const remaining = Math.max(0, perDay - introducedToday);
+  // Return unseen cards up to the remaining quota
+  return cards.filter(c => !isSeen(states, c.id) && !states[c.id]?.introducedOn).slice(0, remaining);
+}
+function getDue(cards) {
+  const s = loadStates(), cfg = loadCfg();
+  const reviews = cards.filter(c => isReviewDue(s, c.id));
+  const newCards = getNewCardsToday(cards, s, cfg);
+  return [...reviews, ...newCards];
+}
 function updateCard(id, score) {
   const states = loadStates();
-  const next = calcSM2(states[id] ?? defState(), score);
-  states[id] = { ...next, dueDate: addDays(next.interval), lastScore: score };
+  const prev = states[id] ?? defState();
+  const next = calcSM2(prev, score);
+  states[id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
   saveStates(states);
 }
 function getStats(cards) {
-  const states = loadStates(); const t = today();
-  const due = cards.filter(c => (states[c.id]?.dueDate ?? t) <= t).length;
-  const avgEF = cards.length ? cards.reduce((s, c) => s + (states[c.id]?.easeFactor ?? 2.5), 0) / cards.length : 0;
+  const states = loadStates(), cfg = loadCfg(), t = today();
+  const seen = cards.filter(c => isSeen(states, c.id));
+  const unseen = cards.filter(c => !isSeen(states, c.id));
+  const reviews = cards.filter(c => isReviewDue(states, c.id));
+  const newToday = getNewCardsToday(cards, states, cfg);
+  const due = reviews.length + newToday.length;
+  const avgEF = seen.length ? seen.reduce((s, c) => s + (states[c.id]?.easeFactor ?? 2.5), 0) / seen.length : 0;
   const scored = cards.filter(c => states[c.id]?.lastScore != null);
   const avgScore = scored.length ? scored.reduce((s, c) => s + states[c.id].lastScore, 0) / scored.length : null;
-  return { total: cards.length, due, avgEF, avgScore };
+  return { total: cards.length, due, reviews: reviews.length, newToday: newToday.length, seen: seen.length, unseen: unseen.length, avgEF, avgScore };
 }
 
 // ─── App state ────────────────────────────────────────────────────────────────
@@ -89,10 +109,10 @@ function Dashboard() {
         {/* stat tiles */}
         <div class="stat-grid" style="margin-bottom:20px;">
           {[
-            { key: 'Due Today',   val: stats.due,             hi: stats.due > 0 },
-            { key: 'Total Cards', val: stats.total,           hi: false },
+            { key: 'Reviews Due', val: stats.reviews,         hi: stats.reviews > 0 },
+            { key: 'New Today',   val: stats.newToday,        hi: stats.newToday > 0 },
+            { key: 'Learned',     val: stats.seen.toLocaleString() + ' / ' + stats.total.toLocaleString(), hi: false },
             { key: 'Days Left',   val: dr,                    hi: dr <= 14 },
-            { key: 'Avg Score',   val: stats.avgScore != null ? stats.avgScore.toFixed(1)+'/5' : '—', hi: false },
           ].map(({ key, val, hi }) =>
             <div class={'stat-tile' + (hi ? ' hi' : '')}>
               <div class="val">{String(val)}</div>
@@ -138,7 +158,7 @@ function Dashboard() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polygon points="5 3 19 12 5 21 5 3"/>
             </svg>
-            {stats.due > 0 ? `Study Now — ${stats.due.toLocaleString()} card${stats.due === 1 ? '' : 's'}` : 'All Caught Up'}
+            {stats.due > 0 ? `Study Now — ${stats.reviews} review${stats.reviews === 1 ? '' : 's'} + ${stats.newToday} new` : 'All Caught Up'}
           </button>
           <div style="display:flex;gap:8px;margin-left:auto;">
             {[['Prompt','prompt'],['Assess','assess'],['Stats','stats'],['Topics','topics'],['Config','config']].map(([l,v]) =>
@@ -296,13 +316,14 @@ function Stats() {
   const states = loadStates(), stats = getStats(CARDS);
   const byTopic = {};
   for (const c of CARDS) {
-    if (!byTopic[c.topicId]) byTopic[c.topicId] = { total: 0, due: 0, ef: 0 };
+    if (!byTopic[c.topicId]) byTopic[c.topicId] = { total: 0, seen: 0, due: 0, ef: 0 };
     const t = byTopic[c.topicId];
-    const s = states[c.id] ?? defState();
-    t.total++; t.ef += s.easeFactor;
-    if (s.dueDate <= today()) t.due++;
+    const seen = isSeen(states, c.id);
+    t.total++;
+    if (seen) { t.seen++; t.ef += states[c.id].easeFactor; }
+    if (isReviewDue(states, c.id)) t.due++;
   }
-  for (const t of Object.values(byTopic)) t.ef = (t.ef / t.total).toFixed(2);
+  for (const t of Object.values(byTopic)) t.ef = t.seen > 0 ? (t.ef / t.seen).toFixed(2) : '—';
   const rows = Object.entries(byTopic).sort((a, b) => b[1].due - a[1].due);
 
   return (
@@ -322,9 +343,9 @@ function Stats() {
 
         <div class="stat-grid" style="margin-bottom:24px;">
           {[
-            { k: 'Total Cards',  v: stats.total },
-            { k: 'Due Today',    v: stats.due },
-            { k: 'Avg EF',       v: stats.avgEF.toFixed(2) },
+            { k: 'Total Cards',  v: stats.total.toLocaleString() },
+            { k: 'Learned',      v: stats.seen.toLocaleString() },
+            { k: 'Reviews Due',  v: stats.reviews },
             { k: 'Avg Score',    v: stats.avgScore?.toFixed(1) ?? '—' },
           ].map(({ k, v }) =>
             <div class="stat-tile">
@@ -340,7 +361,8 @@ function Stats() {
               <tr>
                 <th>Topic</th>
                 <th class="r">Cards</th>
-                <th class="r">Due</th>
+                <th class="r">Learned</th>
+                <th class="r">Review</th>
                 <th class="r">Avg EF</th>
               </tr>
             </thead>
@@ -349,6 +371,7 @@ function Stats() {
                 <tr>
                   <td style="font-family:'SF Mono','Fira Code',monospace;font-size:0.8125rem;color:var(--text2);">{tid}</td>
                   <td class="r" style="color:var(--text2);">{t.total}</td>
+                  <td class="r" style="color:var(--text3);">{t.seen}</td>
                   <td class="r" style={t.due > 0 ? 'color:var(--accent);font-weight:600;' : 'color:var(--text3);'}>{t.due}</td>
                   <td class="r" style="color:var(--text3);">{t.ef}</td>
                 </tr>
@@ -396,7 +419,7 @@ function Topics() {
 
 function Config() {
   const cfg = loadCfg();
-  let examEl, minsEl;
+  let examEl, minsEl, newEl;
 
   return (
     <div class="shell fade-in">
@@ -420,13 +443,17 @@ function Config() {
               <input type="date" value={cfg.examDate} ref={e => examEl = e} />
             </div>
             <div class="field">
+              <label>New Cards Per Day</label>
+              <input type="number" min="5" max="200" value={String(cfg.newCardsPerDay)} ref={e => newEl = e} />
+            </div>
+            <div class="field">
               <label>Daily Study Minutes</label>
               <input type="number" min="10" max="360" value={String(cfg.dailyStudyMinutes)} ref={e => minsEl = e} />
             </div>
           </div>
           <div style="display:flex;gap:10px;margin-top:20px;">
             <button class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;" onclick={() => {
-              saveCfg({ ...cfg, examDate: examEl.value || cfg.examDate, dailyStudyMinutes: parseInt(minsEl.value) || cfg.dailyStudyMinutes });
+              saveCfg({ ...cfg, examDate: examEl.value || cfg.examDate, newCardsPerDay: parseInt(newEl.value) || cfg.newCardsPerDay, dailyStudyMinutes: parseInt(minsEl.value) || cfg.dailyStudyMinutes });
               go('dashboard');
             }}>Save Settings</button>
             <button class="btn-ghost" style="color:#f87171;border-color:rgba(239,68,68,0.25);" onclick={() => {
