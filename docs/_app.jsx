@@ -18,7 +18,7 @@ function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return d
 const SK = 'mccqe1_states', CK = 'mccqe1_cfg';
 const loadStates = () => { try { return JSON.parse(localStorage.getItem(SK) || '{}'); } catch { return {}; } };
 const saveStates = s => localStorage.setItem(SK, JSON.stringify(s));
-const loadCfg = () => ({ examDate: '2026-06-15', dailyStudyMinutes: 60, newCardsPerDay: 20, targetGrade: 'pass', ...JSON.parse(localStorage.getItem(CK) || '{}') });
+const loadCfg = () => ({ examDate: '2026-06-15', dailyStudyMinutes: 60, newCardsPerDay: 0, targetGrade: 'pass', ...JSON.parse(localStorage.getItem(CK) || '{}') });
 const saveCfg = c => localStorage.setItem(CK, JSON.stringify(c));
 const daysLeft = cfg => cfg.examDate ? Math.max(0, Math.ceil((new Date(cfg.examDate) - new Date()) / 86400000)) : 999;
 
@@ -30,9 +30,9 @@ function calcNewPerDay(cards, states, cfg) {
   const dr = daysLeft(cfg);
   const deadline = Math.max(1, dr - 14); // finish 2 weeks before exam
   const auto = Math.ceil(unseen / deadline);
-  const capped = Math.max(5, Math.min(auto, 100));
-  // If user explicitly set newCardsPerDay, use it; otherwise use auto-calculated
-  return { perDay: cfg.newCardsPerDay || capped, auto: capped, unseen, deadline };
+  // 0 = auto-calculate from deadline; otherwise use user override
+  const perDay = cfg.newCardsPerDay > 0 ? cfg.newCardsPerDay : auto;
+  return { perDay, auto, unseen, deadline };
 }
 function getNewCardsToday(cards, states, cfg) {
   const { perDay } = calcNewPerDay(cards, states, cfg);
@@ -464,8 +464,8 @@ function Config() {
               <input type="date" value={cfg.examDate} ref={e => examEl = e} />
             </div>
             <div class="field">
-              <label>New Cards Per Day</label>
-              <input type="number" min="5" max="200" value={String(cfg.newCardsPerDay)} ref={e => newEl = e} />
+              <label>New Cards Per Day <span style="font-weight:400;color:var(--text3);">(0 = auto from deadline)</span></label>
+              <input type="number" min="0" max="500" value={String(cfg.newCardsPerDay)} ref={e => newEl = e} />
             </div>
             <div class="field">
               <label>Daily Study Minutes</label>

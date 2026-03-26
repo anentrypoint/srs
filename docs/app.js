@@ -523,7 +523,7 @@ var loadStates = () => {
   }
 };
 var saveStates = (s) => localStorage.setItem(SK, JSON.stringify(s));
-var loadCfg = () => ({ examDate: "2026-06-15", dailyStudyMinutes: 60, newCardsPerDay: 20, targetGrade: "pass", ...JSON.parse(localStorage.getItem(CK) || "{}") });
+var loadCfg = () => ({ examDate: "2026-06-15", dailyStudyMinutes: 60, newCardsPerDay: 0, targetGrade: "pass", ...JSON.parse(localStorage.getItem(CK) || "{}") });
 var saveCfg = (c) => localStorage.setItem(CK, JSON.stringify(c));
 var daysLeft = (cfg) => cfg.examDate ? Math.max(0, Math.ceil((new Date(cfg.examDate) - new Date) / 86400000)) : 999;
 var isSeen = (states, id) => !!states[id]?.lastScore;
@@ -533,8 +533,8 @@ function calcNewPerDay(cards, states, cfg) {
   const dr = daysLeft(cfg);
   const deadline = Math.max(1, dr - 14);
   const auto = Math.ceil(unseen / deadline);
-  const capped = Math.max(5, Math.min(auto, 100));
-  return { perDay: cfg.newCardsPerDay || capped, auto: capped, unseen, deadline };
+  const perDay = cfg.newCardsPerDay > 0 ? cfg.newCardsPerDay : auto;
+  return { perDay, auto, unseen, deadline };
 }
 function getNewCardsToday(cards, states, cfg) {
   const { perDay } = calcNewPerDay(cards, states, cfg);
@@ -1080,10 +1080,12 @@ function Config() {
     ref: (e) => examEl = e
   })), /* @__PURE__ */ createElement("div", {
     class: "field"
-  }, /* @__PURE__ */ createElement("label", null, "New Cards Per Day"), /* @__PURE__ */ createElement("input", {
+  }, /* @__PURE__ */ createElement("label", null, "New Cards Per Day ", /* @__PURE__ */ createElement("span", {
+    style: "font-weight:400;color:var(--text3);"
+  }, "(0 = auto from deadline)")), /* @__PURE__ */ createElement("input", {
     type: "number",
-    min: "5",
-    max: "200",
+    min: "0",
+    max: "500",
     value: String(cfg.newCardsPerDay),
     ref: (e) => newEl = e
   })), /* @__PURE__ */ createElement("div", {
