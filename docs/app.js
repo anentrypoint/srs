@@ -544,33 +544,29 @@ function getNewCardsToday(cards, states, cfg) {
   return cards.filter((c) => !isSeen(states, c.id) && !states[c.id]?.introducedOn).slice(0, remaining);
 }
 function getDue(cards) {
-  const s = loadStates(), cfg = loadCfg(), t = today();
+  const s = loadStates(), cfg = loadCfg();
   const reviews = cards.filter((c) => isReviewDue(s, c.id));
-  const failed = cards.filter((c) => s[c.id]?.lastScore != null && s[c.id].lastScore < 3 && s[c.id].dueDate <= t);
   const newCards = getNewCardsToday(cards, s, cfg);
-  const ids = new Set;
-  return [...failed, ...reviews, ...newCards].filter((c) => ids.has(c.id) ? false : (ids.add(c.id), true));
+  return [...reviews, ...newCards];
 }
 function updateCard(id, score) {
   const states = loadStates();
   const prev = states[id] ?? defState();
   const next = calcSM2(prev, score);
-  const due = score < 3 ? today() : addDays(next.interval);
-  states[id] = { ...next, dueDate: due, lastScore: score, introducedOn: prev.introducedOn || today() };
+  states[id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
   saveStates(states);
 }
 function getStats(cards) {
-  const states = loadStates(), cfg = loadCfg(), t = today();
+  const states = loadStates(), cfg = loadCfg();
   const seen = cards.filter((c) => isSeen(states, c.id));
   const unseen = cards.filter((c) => !isSeen(states, c.id));
   const reviews = cards.filter((c) => isReviewDue(states, c.id));
-  const failed = cards.filter((c) => states[c.id]?.lastScore != null && states[c.id].lastScore < 3 && states[c.id].dueDate <= t);
   const newToday = getNewCardsToday(cards, states, cfg);
   const due = getDue(cards).length;
   const avgEF = seen.length ? seen.reduce((s, c) => s + (states[c.id]?.easeFactor ?? 2.5), 0) / seen.length : 0;
   const scored = cards.filter((c) => states[c.id]?.lastScore != null);
   const avgScore = scored.length ? scored.reduce((s, c) => s + states[c.id].lastScore, 0) / scored.length : null;
-  return { total: cards.length, due, reviews: reviews.length, failed: failed.length, newToday: newToday.length, seen: seen.length, unseen: unseen.length, avgEF, avgScore };
+  return { total: cards.length, due, reviews: reviews.length, newToday: newToday.length, seen: seen.length, unseen: unseen.length, avgEF, avgScore };
 }
 var CARDS = [];
 var view = "loading";
@@ -632,14 +628,13 @@ function Dashboard() {
     style: "margin-bottom:20px;"
   }, [
     { key: "Due Today", val: stats.due, hi: stats.due > 0 },
-    { key: "Re-study", val: stats.failed, hi: stats.failed > 0, warn: stats.failed > 0 },
+    { key: "New Today", val: stats.newToday, hi: stats.newToday > 0 },
     { key: "Learned", val: stats.seen.toLocaleString() + " / " + stats.total.toLocaleString(), hi: false },
     { key: "Days Left", val: dr, hi: dr <= 14 }
-  ].map(({ key, val, hi, warn }) => /* @__PURE__ */ createElement("div", {
+  ].map(({ key, val, hi }) => /* @__PURE__ */ createElement("div", {
     class: "stat-tile" + (hi ? " hi" : "")
   }, /* @__PURE__ */ createElement("div", {
-    class: "val",
-    style: warn ? "color:var(--danger)" : ""
+    class: "val"
   }, String(val)), /* @__PURE__ */ createElement("div", {
     class: "key"
   }, key)))), /* @__PURE__ */ createElement("div", {
@@ -1407,8 +1402,7 @@ function Assess() {
       const score = scores[c.id] ?? 1;
       const prev = states[c.id] || defState();
       const next = calcSM2(prev, score);
-      const due2 = score < 3 ? today() : addDays(next.interval);
-      states[c.id] = { ...next, dueDate: due2, lastScore: score, introducedOn: prev.introducedOn || today() };
+      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
     });
     saveStates(states);
     if (ctx.assessMeta) {
