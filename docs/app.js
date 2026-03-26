@@ -533,7 +533,8 @@ function calcNewPerDay(cards, states, cfg) {
   const dr = daysLeft(cfg);
   const deadline = Math.max(1, dr - 14);
   const auto = Math.ceil(unseen / deadline);
-  return { perDay: cfg.newCardsPerDay || Math.max(10, Math.min(auto, 50)), auto };
+  const capped = Math.max(5, Math.min(auto, 100));
+  return { perDay: cfg.newCardsPerDay || capped, auto: capped, unseen, deadline };
 }
 function getNewCardsToday(cards, states, cfg) {
   const { perDay } = calcNewPerDay(cards, states, cfg);
@@ -1274,47 +1275,60 @@ function Prompt() {
     class: "title",
     style: "font-size:1.25rem;"
   }, "Daily Prompt")), /* @__PURE__ */ createElement("button", {
-    class: "btn-study",
-    style: "padding:0.5rem 1rem;font-size:0.875rem;",
-    onclick: () => {
-      navigator.clipboard.writeText(filled);
-      ctx.copied = true;
-      render();
-    }
-  }, ctx.copied ? "Copied!" : "Copy Prompt")), /* @__PURE__ */ createElement("div", {
+    class: "btn-ghost",
+    onclick: () => go("dashboard")
+  }, "Dashboard")), /* @__PURE__ */ createElement("div", {
     class: "gcard",
     style: "padding:1rem;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("div", {
-    style: "display:flex;flex-wrap:wrap;gap:12px;"
+    style: "display:flex;flex-wrap:wrap;gap:16px;"
   }, /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
   }, "Reviews"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;color:var(--accent);"
   }, reviews.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
-  }, "New"), /* @__PURE__ */ createElement("div", {
+  }, "New Cards"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;color:var(--success);"
   }, newCards.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
-  }, "Total Session"), /* @__PURE__ */ createElement("div", {
+  }, "Session Total"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;"
   }, due.length)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
-  }, "Days Left"), /* @__PURE__ */ createElement("div", {
+  }, "Days to Exam"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;"
   }, dr)), /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("div", {
     class: "label-xs"
-  }, "New/Day"), /* @__PURE__ */ createElement("div", {
+  }, "Pace (new/day)"), /* @__PURE__ */ createElement("div", {
     style: "font-size:1.25rem;font-weight:700;"
-  }, perDay)))), /* @__PURE__ */ createElement("div", {
+  }, perDay))), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.75rem;color:var(--text3);margin-top:8px;"
+  }, CARDS.length.toLocaleString(), " total · ", calcNewPerDay(CARDS, states, cfg).unseen.toLocaleString(), " unseen · ", calcNewPerDay(CARDS, states, cfg).deadline, " study days left")), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;gap:10px;margin-bottom:16px;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn-study",
+    style: "flex:1;justify-content:center;padding:0.75rem;",
+    onclick: () => {
+      navigator.clipboard.writeText(filled);
+      ctx.copied = true;
+      render();
+    }
+  }, ctx.copied ? "✓ Copied!" : "1. Copy Prompt"), /* @__PURE__ */ createElement("a", {
+    href: "https://chatgpt.com",
+    target: "_blank",
+    rel: "noopener",
+    class: "btn-study",
+    style: "flex:1;justify-content:center;padding:0.75rem;text-decoration:none;background:rgba(16,163,127,0.15);border-color:rgba(16,163,127,0.4);color:#10a37f;"
+  }, "2. Open ChatGPT →")), /* @__PURE__ */ createElement("div", {
     class: "gcard",
     style: "padding:1rem;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("div", {
     class: "label-xs",
     style: "margin-bottom:6px;"
-  }, "How to use"), /* @__PURE__ */ createElement("ol", {
+  }, "Daily Workflow"), /* @__PURE__ */ createElement("ol", {
     style: "font-size:0.8125rem;color:var(--text2);line-height:1.6;margin:0;padding-left:1.25rem;"
-  }, /* @__PURE__ */ createElement("li", null, "Click ", /* @__PURE__ */ createElement("strong", null, "Copy Prompt"), " above"), /* @__PURE__ */ createElement("li", null, "Paste into any LLM (Claude, GPT, etc.) to start your session"), /* @__PURE__ */ createElement("li", null, "The AI will probe your knowledge, then teach conversationally"), /* @__PURE__ */ createElement("li", null, "At the end, the AI outputs a JSON block with your scores"), /* @__PURE__ */ createElement("li", null, "Go to ", /* @__PURE__ */ createElement("strong", null, "Assess"), " on the dashboard, paste the JSON, and save to update your SRS"))), /* @__PURE__ */ createElement("div", {
+  }, /* @__PURE__ */ createElement("li", null, "Click ", /* @__PURE__ */ createElement("strong", null, '"Copy Prompt"'), " then ", /* @__PURE__ */ createElement("strong", null, '"Open ChatGPT"')), /* @__PURE__ */ createElement("li", null, "Paste the prompt — the AI teaches today's cards conversationally"), /* @__PURE__ */ createElement("li", null, "At session end, the AI outputs a ", /* @__PURE__ */ createElement("strong", null, "JSON assessment block")), /* @__PURE__ */ createElement("li", null, "Copy that JSON, come back here → ", /* @__PURE__ */ createElement("strong", null, "Assess"), " → paste → ", /* @__PURE__ */ createElement("strong", null, "Save to SRS")), /* @__PURE__ */ createElement("li", null, "Your card schedules update automatically based on how you scored"))), /* @__PURE__ */ createElement("div", {
     class: "gcard",
     style: "padding:1.25rem;"
   }, /* @__PURE__ */ createElement("div", {

@@ -30,8 +30,9 @@ function calcNewPerDay(cards, states, cfg) {
   const dr = daysLeft(cfg);
   const deadline = Math.max(1, dr - 14); // finish 2 weeks before exam
   const auto = Math.ceil(unseen / deadline);
-  // Use configured value if set, but show auto-calculated as suggestion
-  return { perDay: cfg.newCardsPerDay || Math.max(10, Math.min(auto, 50)), auto };
+  const capped = Math.max(5, Math.min(auto, 100));
+  // If user explicitly set newCardsPerDay, use it; otherwise use auto-calculated
+  return { perDay: cfg.newCardsPerDay || capped, auto: capped, unseen, deadline };
 }
 function getNewCardsToday(cards, states, cfg) {
   const { perDay } = calcNewPerDay(cards, states, cfg);
@@ -632,29 +633,39 @@ function Prompt() {
             </button>
             <span class="title" style="font-size:1.25rem;">Daily Prompt</span>
           </div>
-          <button class="btn-study" style="padding:0.5rem 1rem;font-size:0.875rem;" onclick={() => { navigator.clipboard.writeText(filled); ctx.copied = true; render(); }}>
-            {ctx.copied ? 'Copied!' : 'Copy Prompt'}
-          </button>
+          <button class="btn-ghost" onclick={() => go('dashboard')}>Dashboard</button>
         </div>
 
         <div class="gcard" style="padding:1rem;margin-bottom:16px;">
-          <div style="display:flex;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;flex-wrap:wrap;gap:16px;">
             <div><div class="label-xs">Reviews</div><div style="font-size:1.25rem;font-weight:700;color:var(--accent);">{reviews.length}</div></div>
-            <div><div class="label-xs">New</div><div style="font-size:1.25rem;font-weight:700;color:var(--success);">{newCards.length}</div></div>
-            <div><div class="label-xs">Total Session</div><div style="font-size:1.25rem;font-weight:700;">{due.length}</div></div>
-            <div><div class="label-xs">Days Left</div><div style="font-size:1.25rem;font-weight:700;">{dr}</div></div>
-            <div><div class="label-xs">New/Day</div><div style="font-size:1.25rem;font-weight:700;">{perDay}</div></div>
+            <div><div class="label-xs">New Cards</div><div style="font-size:1.25rem;font-weight:700;color:var(--success);">{newCards.length}</div></div>
+            <div><div class="label-xs">Session Total</div><div style="font-size:1.25rem;font-weight:700;">{due.length}</div></div>
+            <div><div class="label-xs">Days to Exam</div><div style="font-size:1.25rem;font-weight:700;">{dr}</div></div>
+            <div><div class="label-xs">Pace (new/day)</div><div style="font-size:1.25rem;font-weight:700;">{perDay}</div></div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text3);margin-top:8px;">
+            {CARDS.length.toLocaleString()} total · {calcNewPerDay(CARDS, states, cfg).unseen.toLocaleString()} unseen · {calcNewPerDay(CARDS, states, cfg).deadline} study days left
           </div>
         </div>
 
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <button class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;" onclick={() => { navigator.clipboard.writeText(filled); ctx.copied = true; render(); }}>
+            {ctx.copied ? '✓ Copied!' : '1. Copy Prompt'}
+          </button>
+          <a href="https://chatgpt.com" target="_blank" rel="noopener" class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;text-decoration:none;background:rgba(16,163,127,0.15);border-color:rgba(16,163,127,0.4);color:#10a37f;">
+            2. Open ChatGPT →
+          </a>
+        </div>
+
         <div class="gcard" style="padding:1rem;margin-bottom:16px;">
-          <div class="label-xs" style="margin-bottom:6px;">How to use</div>
+          <div class="label-xs" style="margin-bottom:6px;">Daily Workflow</div>
           <ol style="font-size:0.8125rem;color:var(--text2);line-height:1.6;margin:0;padding-left:1.25rem;">
-            <li>Click <strong>Copy Prompt</strong> above</li>
-            <li>Paste into any LLM (Claude, GPT, etc.) to start your session</li>
-            <li>The AI will probe your knowledge, then teach conversationally</li>
-            <li>At the end, the AI outputs a JSON block with your scores</li>
-            <li>Go to <strong>Assess</strong> on the dashboard, paste the JSON, and save to update your SRS</li>
+            <li>Click <strong>"Copy Prompt"</strong> then <strong>"Open ChatGPT"</strong></li>
+            <li>Paste the prompt — the AI teaches today's cards conversationally</li>
+            <li>At session end, the AI outputs a <strong>JSON assessment block</strong></li>
+            <li>Copy that JSON, come back here → <strong>Assess</strong> → paste → <strong>Save to SRS</strong></li>
+            <li>Your card schedules update automatically based on how you scored</li>
           </ol>
         </div>
 

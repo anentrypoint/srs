@@ -1,0 +1,1 @@
+{"project":"mccqe1-srs","created":"2026-03-26","objective":"Validate conversational teaching prompt + deadline-based workload + clear daily workflow","items":[{"id":"validate-prompt-chatgpt","subject":"Test daily prompt in ChatGPT via agent-browser and verify output format"}],"completed":[]}
