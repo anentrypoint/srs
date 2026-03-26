@@ -159,19 +159,13 @@ function Dashboard() {
 
         {/* daily workflow */}
         <div class="gcard" style="padding:1.25rem;margin-bottom:16px;">
-          <div class="label-xs" style="margin-bottom:12px;">Daily Workflow</div>
+          <div class="label-xs" style="margin-bottom:12px;">Today's Study</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
-            <button class={'btn-study' + (stats.due === 0 ? ' disabled' : '')} style="width:100%;justify-content:center;" onclick={() => stats.due > 0 && go('prompt')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-              </svg>
-              {stats.due > 0 ? `1. Get Daily Prompt (${stats.reviews} reviews + ${stats.newToday} new)` : 'All Caught Up for Today'}
+            <button class={'btn-study' + (stats.due === 0 ? ' disabled' : '')} style="width:100%;justify-content:center;min-height:48px;" onclick={() => stats.due > 0 && go('prompt')}>
+              {stats.due > 0 ? `Step 1: Send ${stats.reviews} reviews + ${stats.newToday} new to ChatGPT` : 'All Caught Up for Today'}
             </button>
-            <button class="btn-ghost" style="width:100%;justify-content:center;padding:0.65rem;" onclick={() => go('assess')}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              2. Submit Results from AI Session
+            <button class="btn-ghost" style="width:100%;justify-content:center;padding:0.75rem;min-height:48px;" onclick={() => go('assess')}>
+              Step 2: Import Scores from Session
             </button>
           </div>
         </div>
@@ -574,29 +568,33 @@ Each card has: id, question, answer, difficulty (1-5), tags, bloomLevel (recall/
 ${cardsJson}
 \`\`\`
 
-## End-of-Session Summary
+## End-of-Session Output
 
-When the session is complete (all cards covered OR student ends early), provide a **plain-language summary**:
+When done (all cards covered OR student ends early), produce TWO things in order:
 
-1. **For each card topic cluster**, tell the student:
-   - What they knew well (suggest scoring 4-5)
-   - What they were shaky on (suggest scoring 2-3)
-   - What they didn't know (suggest scoring 1)
-2. **Overall assessment**: strengths, weaknesses, what to focus on next
-3. **Remind them**: "Go back to your SRS app and score each card using the self-assessment. Be honest — the spaced repetition only works if your scores reflect reality."
+### 1. Score Block (for auto-import)
+Output a score block the student can copy-paste into their app. Use EXACTLY this format:
 
-Scoring guide (share this with the student):
-- **5** — Instant correct, high confidence, could teach it to someone else
-- **4** — Correct with minor hesitation
-- **3** — Got it after a hint or partial recall
-- **2** — Partially correct, needed significant help
-- **1** — Didn't know it, had to be taught from scratch
+<!-- SRS_SCORES -->
+card-id: score
+card-id: score
+...
 
-Do NOT output JSON. The student will self-score each card in their app.
+One line per card. Use the exact card IDs from the JSON above. Scores 1-5:
+- 5 = instant correct, high confidence
+- 4 = correct with minor hesitation
+- 3 = got it after a hint
+- 2 = partially correct, needed help
+- 1 = didn't know, had to be taught
+
+Include ALL cards — even ones not reached (score those 1).
+
+### 2. Verbal Summary
+After the score block, give a brief summary: what they nailed, what needs work, what to focus on next. Tell them: "Copy everything above starting from the scores and paste it into your SRS app — it will auto-import. Or score manually if you prefer."
 
 ## Begin
 
-Start by greeting the student and asking what they remember about today's topics. Do NOT reveal answers or jump straight to quizzing — discover their knowledge first, then teach conversationally.`;
+Start by greeting the student and asking what they remember about today's topics. Discover their knowledge first, then teach conversationally.`;
 }
 
 function Prompt() {
@@ -649,22 +647,28 @@ function Prompt() {
         </div>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;">
-          <button class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;" onclick={() => { navigator.clipboard.writeText(filled); ctx.copied = true; render(); }}>
-            {ctx.copied ? '✓ Copied!' : '1. Copy Prompt'}
+          <button class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;" onclick={() => {
+            if (navigator.share) {
+              navigator.share({ text: filled }).then(() => { ctx.copied = true; render(); }).catch(() => {
+                navigator.clipboard.writeText(filled); ctx.copied = true; render();
+              });
+            } else {
+              navigator.clipboard.writeText(filled); ctx.copied = true; render();
+            }
+          }}>
+            {ctx.copied ? '✓ Sent!' : '1. Send to ChatGPT'}
           </button>
-          <a href="https://chatgpt.com" target="_blank" rel="noopener" class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;text-decoration:none;background:rgba(16,163,127,0.15);border-color:rgba(16,163,127,0.4);color:#10a37f;">
+          <a href={'https://chatgpt.com/?q=' + encodeURIComponent('I have a study prompt to paste. Ready?')} target="_blank" rel="noopener" class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;text-decoration:none;background:rgba(16,163,127,0.15);border-color:rgba(16,163,127,0.4);color:#10a37f;">
             2. Open ChatGPT →
           </a>
         </div>
 
         <div class="gcard" style="padding:1rem;margin-bottom:16px;">
-          <div class="label-xs" style="margin-bottom:6px;">Daily Workflow</div>
-          <ol style="font-size:0.8125rem;color:var(--text2);line-height:1.6;margin:0;padding-left:1.25rem;">
-            <li>Click <strong>"Copy Prompt"</strong> then <strong>"Open ChatGPT"</strong></li>
-            <li>Paste the prompt — the AI teaches today's {Math.min(SESSION_SIZE, due.length - sessionIdx * SESSION_SIZE)} cards conversationally</li>
-            <li>After the session, come back and click <strong>"Score My Cards"</strong></li>
-            <li>Rate each card 1-5 based on how you performed — SRS updates automatically</li>
-            <li>Repeat for each session batch ({totalSessions} sessions today)</li>
+          <div class="label-xs" style="margin-bottom:6px;">How it works</div>
+          <ol style="font-size:0.8125rem;color:var(--text2);line-height:1.7;margin:0;padding-left:1.25rem;">
+            <li><strong>Send</strong> the prompt to ChatGPT (share sheet on mobile, clipboard on desktop)</li>
+            <li><strong>Study</strong> — the AI teaches and quizzes you on {Math.min(SESSION_SIZE, due.length - sessionIdx * SESSION_SIZE)} cards</li>
+            <li><strong>Return here</strong> → paste the scores ChatGPT gives you, or rate each card manually</li>
           </ol>
         </div>
 
@@ -729,12 +733,36 @@ function Assess() {
     );
   }
 
+  const parseScores = (text) => {
+    const parsed = {};
+    const blockMatch = text.match(/<!--\s*SRS_SCORES\s*-->([\s\S]*?)(?:<!--|```|$)/i);
+    const searchText = blockMatch ? blockMatch[1] : text;
+    const linePattern = /\b(card-[a-z0-9-]+)\s*[:=|]\s*([1-5])\b/gi;
+    let m;
+    while ((m = linePattern.exec(searchText)) !== null) parsed[m[1]] = parseInt(m[2]);
+    if (Object.keys(parsed).length === 0) {
+      const jsonMatch = text.match(/\[[\s\S]*?\]/);
+      if (jsonMatch) try { JSON.parse(jsonMatch[0]).forEach(item => { if (item.id && item.score >= 1 && item.score <= 5) parsed[item.id] = item.score; }); } catch {}
+    }
+    return parsed;
+  };
+
+  const doPaste = (text) => {
+    const parsed = parseScores(text);
+    const matched = sessionCards.filter(c => parsed[c.id] != null).length;
+    if (matched === 0) { ctx.pasteError = 'No matching card scores found. Score manually below.'; render(); return; }
+    sessionCards.forEach(c => { if (parsed[c.id] != null) scores[c.id] = parsed[c.id]; });
+    ctx.pasteError = null;
+    ctx.pasteSuccess = matched + '/' + sessionCards.length + ' cards auto-scored' + (matched < sessionCards.length ? ' — score the rest manually' : '');
+    render();
+  };
+
   return (
     <div class="shell fade-in">
       <div class="page">
         <div class="nav">
           <div style="display:flex;align-items:center;gap:12px;">
-            <button class="btn-ghost" onclick={() => { delete ctx.assessScores; go('dashboard'); }}>
+            <button class="btn-ghost" onclick={() => { delete ctx.assessScores; delete ctx.pasteError; delete ctx.pasteSuccess; go('dashboard'); }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
               </svg>
@@ -749,8 +777,18 @@ function Assess() {
           <div class="prog-fill" style={'width:' + (sessionCards.length ? Math.round(scored / sessionCards.length * 100) : 0) + '%'}></div>
         </div>
 
+        <div class="gcard" style="padding:1rem;margin-bottom:16px;">
+          <div class="label-xs" style="margin-bottom:8px;">Paste scores from ChatGPT</div>
+          <div style="display:flex;gap:8px;">
+            <textarea style="flex:1;min-height:48px;max-height:120px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:0.625rem;color:var(--text1);font-family:monospace;font-size:0.8rem;resize:vertical;" placeholder="Paste the score block from ChatGPT here..." ref={el => { if (el) el.onpaste = () => setTimeout(() => doPaste(el.value), 0); }}></textarea>
+            <button class="btn-ghost" style="align-self:flex-end;padding:0.625rem 1rem;" onclick={e => { const ta = e.target.closest('.gcard').querySelector('textarea'); if (ta?.value) doPaste(ta.value); }}>Import</button>
+          </div>
+          {ctx.pasteError && <div style="font-size:0.75rem;color:var(--danger);margin-top:6px;">{ctx.pasteError}</div>}
+          {ctx.pasteSuccess && <div style="font-size:0.75rem;color:var(--success);margin-top:6px;">{ctx.pasteSuccess}</div>}
+        </div>
+
         <div style="font-size:0.75rem;color:var(--text3);margin-bottom:12px;text-align:center;">
-          Rate each card based on your ChatGPT session: 1=blank · 2=wrong · 3=hard · 4=good · 5=easy
+          Or score each card manually: 1=blank · 2=wrong · 3=hard · 4=good · 5=easy
         </div>
 
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
@@ -758,15 +796,15 @@ function Assess() {
             const s = scores[c.id];
             return (
               <div class="gcard" style="padding:0.75rem 1rem;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-                  <div style="flex:1;min-width:0;">
-                    <div style="font-size:0.75rem;color:var(--text3);margin-bottom:4px;">{c.topicId || c.tags?.[0] || ''}</div>
-                    <div style="font-size:0.8125rem;color:var(--text1);line-height:1.4;">{c.question.length > 120 ? c.question.slice(0, 120) + '…' : c.question}</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="min-width:0;">
+                    <div style="font-size:0.75rem;color:var(--text3);margin-bottom:2px;">{c.topicId || c.tags?.[0] || ''}</div>
+                    <div style="font-size:0.8125rem;color:var(--text1);line-height:1.4;">{c.question.length > 100 ? c.question.slice(0, 100) + '…' : c.question}</div>
                   </div>
-                  <div style="display:flex;gap:3px;flex-shrink:0;">
+                  <div style="display:flex;gap:4px;">
                     {[1,2,3,4,5].map(score =>
                       <button
-                        style={'width:28px;height:28px;border-radius:6px;border:1px solid ' + (s === score ? scoreColors[score] : 'var(--border)') + ';background:' + (s === score ? scoreColors[score] + '22' : 'transparent') + ';color:' + (s === score ? scoreColors[score] : 'var(--text3)') + ';font-size:0.75rem;font-weight:600;cursor:pointer;'}
+                        style={'flex:1;height:44px;border-radius:8px;border:1px solid ' + (s === score ? scoreColors[score] : 'var(--border)') + ';background:' + (s === score ? scoreColors[score] + '22' : 'transparent') + ';color:' + (s === score ? scoreColors[score] : 'var(--text3)') + ';font-size:0.875rem;font-weight:600;cursor:pointer;'}
                         onclick={() => { scores[c.id] = score; render(); }}>
                         {score}
                       </button>
@@ -778,18 +816,20 @@ function Assess() {
           })}
         </div>
 
-        <div style="display:flex;gap:10px;">
-          <button class={'btn-study' + (!allScored ? ' disabled' : '')} style="flex:1;justify-content:center;" onclick={() => allScored && doSave()}>
-            {allScored ? 'Save Scores to SRS' : `Score all ${sessionCards.length} cards first`}
-          </button>
-        </div>
-
-        {!allScored &&
-          <div style="display:flex;gap:8px;margin-top:10px;">
-            <button class="btn-ghost" style="flex:1;" onclick={() => { sessionCards.forEach(c => { if (scores[c.id] == null) scores[c.id] = 3; }); render(); }}>Mark remaining "Hard" (3)</button>
-            <button class="btn-ghost" style="flex:1;" onclick={() => { sessionCards.forEach(c => { if (scores[c.id] == null) scores[c.id] = 1; }); render(); }}>Mark remaining "Blank" (1)</button>
+        <div style="position:sticky;bottom:0;padding:12px 0;background:var(--bg-deep);">
+          <div style="display:flex;gap:10px;">
+            <button class={'btn-study' + (!allScored ? ' disabled' : '')} style="flex:1;justify-content:center;" onclick={() => allScored && doSave()}>
+              {allScored ? 'Save Scores to SRS' : `Score all ${sessionCards.length} cards first`}
+            </button>
           </div>
-        }
+
+          {!allScored &&
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn-ghost" style="flex:1;padding:0.625rem;" onclick={() => { sessionCards.forEach(c => { if (scores[c.id] == null) scores[c.id] = 3; }); render(); }}>Rest → Hard (3)</button>
+              <button class="btn-ghost" style="flex:1;padding:0.625rem;" onclick={() => { sessionCards.forEach(c => { if (scores[c.id] == null) scores[c.id] = 1; }); render(); }}>Rest → Blank (1)</button>
+            </div>
+          }
+        </div>
       </div>
     </div>
   );
