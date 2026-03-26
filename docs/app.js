@@ -1203,40 +1203,25 @@ Each card has: id, question, answer, difficulty (1-5), tags, bloomLevel (recall/
 ${cardsJson}
 \`\`\`
 
-## CRITICAL: End-of-Session Output
+## End-of-Session Summary
 
-When the session is complete (all cards reviewed OR student ends early), you MUST output this exact JSON structure. The student will paste it back into their SRS app to update their schedule.
+When the session is complete (all cards covered OR student ends early), provide a **plain-language summary**:
 
-Scoring guide:
-- 5: Instant correct, high confidence, could explain to others
-- 4: Correct with minor hesitation
-- 3: Correct after one hint or partial prompt
-- 2: Partially correct or needed teaching first
-- 1: Incorrect, skipped, or couldn't answer after teaching
-- 0: Not attempted (session ended early)
+1. **For each card topic cluster**, tell the student:
+   - What they knew well (suggest scoring 4-5)
+   - What they were shaky on (suggest scoring 2-3)
+   - What they didn't know (suggest scoring 1)
+2. **Overall assessment**: strengths, weaknesses, what to focus on next
+3. **Remind them**: "Go back to your SRS app and score each card using the self-assessment. Be honest — the spaced repetition only works if your scores reflect reality."
 
-\`\`\`json
-{
-  "cardsReviewed": [
-    { "id": "card_id_here", "score": 4, "confident": true, "timeSpentSeconds": 30 }
-  ],
-  "sessionSummary": {
-    "totalCards": ${sessionCards.length},
-    "correctCount": 0,
-    "avgScore": 0.0,
-    "weakAreas": ["topic1"],
-    "strongAreas": ["topic2"]
-  },
-  "recommendations": {
-    "topicsToReview": ["topic1"],
-    "adjustedDifficulty": "increase | maintain | decrease",
-    "nextSessionFocus": "description of what to prioritize next"
-  },
-  "masteryEstimate": 0
-}
-\`\`\`
+Scoring guide (share this with the student):
+- **5** — Instant correct, high confidence, could teach it to someone else
+- **4** — Correct with minor hesitation
+- **3** — Got it after a hint or partial recall
+- **2** — Partially correct, needed significant help
+- **1** — Didn't know it, had to be taught from scratch
 
-Include ALL cards — score 0 for any not attempted. The student's SRS schedule depends on accurate scoring.
+Do NOT output JSON. The student will self-score each card in their app.
 
 ## Begin
 
@@ -1354,7 +1339,7 @@ function Prompt() {
     style: "margin-bottom:6px;"
   }, "Daily Workflow"), /* @__PURE__ */ createElement("ol", {
     style: "font-size:0.8125rem;color:var(--text2);line-height:1.6;margin:0;padding-left:1.25rem;"
-  }, /* @__PURE__ */ createElement("li", null, "Click ", /* @__PURE__ */ createElement("strong", null, '"Copy Prompt"'), " then ", /* @__PURE__ */ createElement("strong", null, '"Open ChatGPT"')), /* @__PURE__ */ createElement("li", null, "Paste the prompt — the AI teaches today's cards conversationally"), /* @__PURE__ */ createElement("li", null, "At session end, the AI outputs a ", /* @__PURE__ */ createElement("strong", null, "JSON assessment block")), /* @__PURE__ */ createElement("li", null, "Copy that JSON, come back here → ", /* @__PURE__ */ createElement("strong", null, "Assess"), " → paste → ", /* @__PURE__ */ createElement("strong", null, "Save to SRS")), /* @__PURE__ */ createElement("li", null, "Your card schedules update automatically based on how you scored"))), /* @__PURE__ */ createElement("div", {
+  }, /* @__PURE__ */ createElement("li", null, "Click ", /* @__PURE__ */ createElement("strong", null, '"Copy Prompt"'), " then ", /* @__PURE__ */ createElement("strong", null, '"Open ChatGPT"')), /* @__PURE__ */ createElement("li", null, "Paste the prompt — the AI teaches today's ", Math.min(SESSION_SIZE, due.length - sessionIdx * SESSION_SIZE), " cards conversationally"), /* @__PURE__ */ createElement("li", null, "After the session, come back and click ", /* @__PURE__ */ createElement("strong", null, '"Score My Cards"')), /* @__PURE__ */ createElement("li", null, "Rate each card 1-5 based on how you performed — SRS updates automatically"), /* @__PURE__ */ createElement("li", null, "Repeat for each session batch (", totalSessions, " sessions today)"))), /* @__PURE__ */ createElement("div", {
     class: "gcard",
     style: "padding:1.25rem;"
   }, /* @__PURE__ */ createElement("div", {
@@ -1365,85 +1350,66 @@ function Prompt() {
   }, filled))));
 }
 function Assess() {
-  let textareaEl;
-  const doProcess = () => {
-    try {
-      const raw = textareaEl.value;
-      const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/\{[\s\S]*\}/);
-      const json = jsonMatch ? jsonMatch[1] || jsonMatch[0] : raw;
-      const data = JSON.parse(json);
-      const cards = data.cardsReviewed || data.cards || data;
-      if (!Array.isArray(cards) || !cards.length)
-        throw new Error("No cards found");
-      const n = cards.length;
-      const correct = cards.filter((c) => c.score >= 4).length;
-      const avg = cards.reduce((s, c) => s + c.score, 0) / n;
-      go("assess_results", { assessData: { cards, summary: data.sessionSummary || { totalCards: n, correctCount: correct, avgScore: avg, weakAreas: [], strongAreas: [] }, recommendations: data.recommendations || {}, masteryEstimate: data.masteryEstimate || Math.round(correct / n * 100) } });
-    } catch (e) {
-      alert("Invalid JSON: " + e.message);
-    }
-  };
-  if (ctx.assessData)
-    return AssessResults();
-  return /* @__PURE__ */ createElement("div", {
-    class: "shell fade-in"
-  }, /* @__PURE__ */ createElement("div", {
-    class: "page"
-  }, /* @__PURE__ */ createElement("div", {
-    class: "nav"
-  }, /* @__PURE__ */ createElement("div", {
-    style: "display:flex;align-items:center;gap:12px;"
-  }, /* @__PURE__ */ createElement("button", {
-    class: "btn-ghost",
-    onclick: () => go("dashboard")
-  }, /* @__PURE__ */ createElement("svg", {
-    width: "13",
-    height: "13",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    "stroke-width": "2.5"
-  }, /* @__PURE__ */ createElement("line", {
-    x1: "19",
-    y1: "12",
-    x2: "5",
-    y2: "12"
-  }), /* @__PURE__ */ createElement("polyline", {
-    points: "12 19 5 12 12 5"
-  })), "Back"), /* @__PURE__ */ createElement("span", {
-    class: "title",
-    style: "font-size:1.25rem;"
-  }, "Assessment Form"))), /* @__PURE__ */ createElement("div", {
-    class: "gcard",
-    style: "padding:1.25rem;margin-bottom:16px;"
-  }, /* @__PURE__ */ createElement("div", {
-    class: "label-xs",
-    style: "margin-bottom:8px;"
-  }, "Paste session JSON from your AI agent"), /* @__PURE__ */ createElement("textarea", {
-    ref: (e) => textareaEl = e,
-    style: "width:100%;height:200px;background:var(--bg-card2);color:var(--text1);border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-family:monospace;font-size:0.8125rem;resize:vertical;",
-    placeholder: "Paste the JSON block from your study session here..."
-  })), /* @__PURE__ */ createElement("button", {
-    class: "btn-study",
-    style: "width:100%;justify-content:center;",
-    onclick: doProcess
-  }, "Process Results")));
-}
-function AssessResults() {
-  const { assessData } = ctx;
-  const { cards, summary, recommendations, masteryEstimate } = assessData;
-  const pct = Math.round(summary.correctCount / summary.totalCards * 100) || masteryEstimate;
+  const sessionIdx = ctx.assessSessionIdx || ctx.sessionIdx || 0;
+  const due = getDue(CARDS);
+  const sessionCards = due.slice(sessionIdx * SESSION_SIZE, (sessionIdx + 1) * SESSION_SIZE);
+  const totalSessions = Math.ceil(due.length / SESSION_SIZE);
+  if (!ctx.assessScores)
+    ctx.assessScores = {};
+  const scores = ctx.assessScores;
+  const scored = sessionCards.filter((c) => scores[c.id] != null).length;
+  const allScored = scored === sessionCards.length;
+  const scoreLabels = ["", "Blank", "Wrong", "Hard", "Good", "Easy"];
+  const scoreCls = ["", "s1", "s2", "s3", "s4", "s5"];
+  const scoreColors = ["", "#f87171", "#fb923c", "#fbbf24", "#4ade80", "#60a5fa"];
   const doSave = () => {
     const states = loadStates();
-    cards.forEach((c) => {
+    sessionCards.forEach((c) => {
+      const score = scores[c.id] ?? 1;
       const prev = states[c.id] || defState();
-      const next = calcSM2(prev, c.score);
-      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: c.score, introducedOn: prev.introducedOn || today() };
+      const next = calcSM2(prev, score);
+      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
     });
     saveStates(states);
-    ctx.saved = true;
+    ctx.assessSaved = true;
     render();
   };
+  if (ctx.assessSaved) {
+    const avg = sessionCards.length ? (sessionCards.reduce((s, c) => s + (scores[c.id] || 1), 0) / sessionCards.length).toFixed(1) : "0";
+    const correct = sessionCards.filter((c) => (scores[c.id] || 0) >= 4).length;
+    return /* @__PURE__ */ createElement("div", {
+      class: "shell",
+      style: "display:flex;align-items:center;justify-content:center;min-height:100vh;"
+    }, /* @__PURE__ */ createElement("div", {
+      class: "gcard fade-in",
+      style: "padding:2.5rem;max-width:400px;width:100%;text-align:center;"
+    }, /* @__PURE__ */ createElement("div", {
+      style: "font-size:2.5rem;margin-bottom:12px;"
+    }, "✓"), /* @__PURE__ */ createElement("div", {
+      style: "font-size:1.375rem;font-weight:700;margin-bottom:6px;"
+    }, "Session ", sessionIdx + 1, " Saved"), /* @__PURE__ */ createElement("div", {
+      style: "font-size:0.875rem;color:var(--text2);margin-bottom:1.5rem;"
+    }, correct, "/", sessionCards.length, " correct · avg ", avg, "/5"), /* @__PURE__ */ createElement("div", {
+      style: "display:flex;gap:10px;"
+    }, /* @__PURE__ */ createElement("button", {
+      class: "btn-study",
+      style: "flex:1;justify-content:center;",
+      onclick: () => {
+        delete ctx.assessScores;
+        delete ctx.assessSaved;
+        ctx.sessionIdx = sessionIdx + 1;
+        ctx.assessSessionIdx = sessionIdx + 1;
+        go("assess");
+      }
+    }, sessionIdx < totalSessions - 1 ? `Score Session ${sessionIdx + 2}` : "All Sessions Done"), /* @__PURE__ */ createElement("button", {
+      class: "btn-ghost",
+      onclick: () => {
+        delete ctx.assessScores;
+        delete ctx.assessSaved;
+        go("dashboard");
+      }
+    }, "Dashboard"))));
+  }
   return /* @__PURE__ */ createElement("div", {
     class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
@@ -1455,9 +1421,8 @@ function AssessResults() {
   }, /* @__PURE__ */ createElement("button", {
     class: "btn-ghost",
     onclick: () => {
-      delete ctx.assessData;
-      delete ctx.saved;
-      go("assess");
+      delete ctx.assessScores;
+      go("dashboard");
     }
   }, /* @__PURE__ */ createElement("svg", {
     width: "13",
@@ -1476,73 +1441,69 @@ function AssessResults() {
   })), "Back"), /* @__PURE__ */ createElement("span", {
     class: "title",
     style: "font-size:1.25rem;"
-  }, "Results"))), /* @__PURE__ */ createElement("div", {
-    class: "stat-grid",
+  }, "Score Session ", sessionIdx + 1, "/", totalSessions)), /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.8125rem;color:var(--text2);"
+  }, scored, "/", sessionCards.length)), /* @__PURE__ */ createElement("div", {
+    class: "prog-track thin",
     style: "margin-bottom:16px;"
-  }, [
-    { key: "Cards", val: summary.totalCards, hi: false },
-    { key: "Correct", val: summary.correctCount, hi: true },
-    { key: "Avg Score", val: summary.avgScore?.toFixed?.(1) || summary.avgScore, hi: false },
-    { key: "Mastery", val: masteryEstimate + "%", hi: masteryEstimate >= 90 }
-  ].map(({ key, val, hi }) => /* @__PURE__ */ createElement("div", {
-    class: "stat-tile" + (hi ? " hi" : "")
-  }, /* @__PURE__ */ createElement("div", {
-    class: "val"
-  }, String(val)), /* @__PURE__ */ createElement("div", {
-    class: "key"
-  }, key)))), /* @__PURE__ */ createElement("div", {
-    class: "gcard",
-    style: "padding:1rem;margin-bottom:16px;"
-  }, /* @__PURE__ */ createElement("div", {
-    class: "label-xs",
-    style: "margin-bottom:8px;"
-  }, "Mastery Progress"), /* @__PURE__ */ createElement("div", {
-    class: "prog-track"
   }, /* @__PURE__ */ createElement("div", {
     class: "prog-fill",
-    style: "width:" + pct + "%"
+    style: "width:" + (sessionCards.length ? Math.round(scored / sessionCards.length * 100) : 0) + "%"
   })), /* @__PURE__ */ createElement("div", {
-    style: "text-align:right;font-size:0.75rem;color:var(--text2);margin-top:4px;"
-  }, pct, "% — target 95%")), summary.weakAreas?.length > 0 && /* @__PURE__ */ createElement("div", {
-    class: "gcard",
-    style: "padding:1rem;margin-bottom:12px;"
-  }, /* @__PURE__ */ createElement("div", {
-    class: "label-xs",
-    style: "margin-bottom:6px;color:var(--danger);"
-  }, "Weak Areas"), /* @__PURE__ */ createElement("div", {
-    style: "display:flex;flex-wrap:wrap;gap:4px;"
-  }, summary.weakAreas.map((a) => /* @__PURE__ */ createElement("span", {
-    class: "badge-topic",
-    style: "background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);"
-  }, a)))), summary.strongAreas?.length > 0 && /* @__PURE__ */ createElement("div", {
-    class: "gcard",
-    style: "padding:1rem;margin-bottom:12px;"
-  }, /* @__PURE__ */ createElement("div", {
-    class: "label-xs",
-    style: "margin-bottom:6px;color:var(--success);"
-  }, "Strong Areas"), /* @__PURE__ */ createElement("div", {
-    style: "display:flex;flex-wrap:wrap;gap:4px;"
-  }, summary.strongAreas.map((a) => /* @__PURE__ */ createElement("span", {
-    class: "badge-topic",
-    style: "background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.3);"
-  }, a)))), recommendations.nextSessionFocus && /* @__PURE__ */ createElement("div", {
-    class: "gcard",
-    style: "padding:1rem;margin-bottom:16px;"
-  }, /* @__PURE__ */ createElement("div", {
-    class: "label-xs",
-    style: "margin-bottom:6px;"
-  }, "Next Session"), /* @__PURE__ */ createElement("div", {
-    style: "font-size:0.875rem;color:var(--text2);"
-  }, recommendations.nextSessionFocus)), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.75rem;color:var(--text3);margin-bottom:12px;text-align:center;"
+  }, "Rate each card based on your ChatGPT session: 1=blank · 2=wrong · 3=hard · 4=good · 5=easy"), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"
+  }, sessionCards.map((c, i) => {
+    const s = scores[c.id];
+    return /* @__PURE__ */ createElement("div", {
+      class: "gcard",
+      style: "padding:0.75rem 1rem;"
+    }, /* @__PURE__ */ createElement("div", {
+      style: "display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"
+    }, /* @__PURE__ */ createElement("div", {
+      style: "flex:1;min-width:0;"
+    }, /* @__PURE__ */ createElement("div", {
+      style: "font-size:0.75rem;color:var(--text3);margin-bottom:4px;"
+    }, c.topicId || c.tags?.[0] || ""), /* @__PURE__ */ createElement("div", {
+      style: "font-size:0.8125rem;color:var(--text1);line-height:1.4;"
+    }, c.question.length > 120 ? c.question.slice(0, 120) + "…" : c.question)), /* @__PURE__ */ createElement("div", {
+      style: "display:flex;gap:3px;flex-shrink:0;"
+    }, [1, 2, 3, 4, 5].map((score) => /* @__PURE__ */ createElement("button", {
+      style: "width:28px;height:28px;border-radius:6px;border:1px solid " + (s === score ? scoreColors[score] : "var(--border)") + ";background:" + (s === score ? scoreColors[score] + "22" : "transparent") + ";color:" + (s === score ? scoreColors[score] : "var(--text3)") + ";font-size:0.75rem;font-weight:600;cursor:pointer;",
+      onclick: () => {
+        scores[c.id] = score;
+        render();
+      }
+    }, score)))));
+  })), /* @__PURE__ */ createElement("div", {
     style: "display:flex;gap:10px;"
   }, /* @__PURE__ */ createElement("button", {
-    class: "btn-study" + (ctx.saved ? " disabled" : ""),
+    class: "btn-study" + (!allScored ? " disabled" : ""),
     style: "flex:1;justify-content:center;",
-    onclick: doSave
-  }, ctx.saved ? "Saved to SRS" : "Save to SRS"), /* @__PURE__ */ createElement("button", {
+    onclick: () => allScored && doSave()
+  }, allScored ? "Save Scores to SRS" : `Score all ${sessionCards.length} cards first`)), !allScored && /* @__PURE__ */ createElement("div", {
+    style: "display:flex;gap:8px;margin-top:10px;"
+  }, /* @__PURE__ */ createElement("button", {
     class: "btn-ghost",
-    onclick: () => go("dashboard")
-  }, "Dashboard"))));
+    style: "flex:1;",
+    onclick: () => {
+      sessionCards.forEach((c) => {
+        if (scores[c.id] == null)
+          scores[c.id] = 3;
+      });
+      render();
+    }
+  }, 'Mark remaining "Hard" (3)'), /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: "flex:1;",
+    onclick: () => {
+      sessionCards.forEach((c) => {
+        if (scores[c.id] == null)
+          scores[c.id] = 1;
+      });
+      render();
+    }
+  }, 'Mark remaining "Blank" (1)'))));
 }
 function render() {
   const node = view === "loading" ? Loading() : view === "session" || view === "session_complete" ? Session() : view === "stats" ? Stats() : view === "topics" ? Topics() : view === "config" ? Config() : view === "prompt" ? Prompt() : view === "assess" || view === "assess_results" ? Assess() : Dashboard();
