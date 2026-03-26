@@ -712,7 +712,29 @@ function Dashboard() {
     class: "btn-ghost",
     style: "width:100%;justify-content:center;padding:0.75rem;min-height:48px;",
     onclick: () => go("assess")
-  }, "Step 2: Import Scores from Session"))), /* @__PURE__ */ createElement("div", {
+  }, "Step 2: Import Scores from Session"))), cfg.lastSessionDate && /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1rem;margin-bottom:16px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs",
+    style: "margin-bottom:8px;"
+  }, "Last Session — ", cfg.lastSessionDate), /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.8125rem;line-height:1.6;"
+  }, cfg.lastWeakAreas && /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("span", {
+    style: "color:var(--danger);font-weight:600;"
+  }, "Weak: "), /* @__PURE__ */ createElement("span", {
+    style: "color:var(--text2);"
+  }, cfg.lastWeakAreas)), cfg.lastStrongAreas && /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("span", {
+    style: "color:var(--success);font-weight:600;"
+  }, "Strong: "), /* @__PURE__ */ createElement("span", {
+    style: "color:var(--text2);"
+  }, cfg.lastStrongAreas)), cfg.lastRecommendation && /* @__PURE__ */ createElement("div", {
+    style: "margin-top:4px;"
+  }, /* @__PURE__ */ createElement("span", {
+    style: "color:var(--accent);font-weight:600;"
+  }, "Focus: "), /* @__PURE__ */ createElement("span", {
+    style: "color:var(--text2);"
+  }, cfg.lastRecommendation)))), /* @__PURE__ */ createElement("div", {
     style: "display:flex;flex-wrap:wrap;gap:8px;align-items:center;"
   }, /* @__PURE__ */ createElement("button", {
     class: "btn-ghost" + (stats.due === 0 ? " disabled" : ""),
@@ -1202,8 +1224,18 @@ One line per card. Use the exact card IDs from the JSON above. Scores 1-5:
 
 Include ALL cards — even ones not reached (score those 1).
 
-### 2. Verbal Summary
-After the score block, give a brief summary: what they nailed, what needs work, what to focus on next. Tell them: "Copy everything above starting from the scores and paste it into your SRS app — it will auto-import. Or score manually if you prefer."
+### 2. Session Metadata (for app import)
+Immediately after the scores, on the same block, add a metadata section:
+
+<!-- SRS_META -->
+weakAreas: topic1, topic2
+strongAreas: topic3, topic4
+avgScore: 3.5
+recommendation: brief one-line focus for next session
+difficulty: increase|maintain|decrease
+
+### 3. Verbal Summary
+After the score and metadata blocks, give a brief summary: what they nailed, what needs work, what to focus on next. Tell them: "Copy everything from the scores down and paste it into your SRS app — it will auto-import your scores and recommendations. Or score manually if you prefer."
 
 ## Begin
 
@@ -1313,18 +1345,14 @@ function Prompt() {
           render();
         });
       } else {
-        navigator.clipboard.writeText(filled);
-        ctx.copied = true;
-        render();
+        navigator.clipboard.writeText(filled).then(() => {
+          ctx.copied = true;
+          render();
+          window.open("https://chatgpt.com/", "_blank");
+        });
       }
     }
-  }, ctx.copied ? "✓ Sent!" : "1. Send to ChatGPT"), /* @__PURE__ */ createElement("a", {
-    href: "https://chatgpt.com/?q=" + encodeURIComponent("I have a study prompt to paste. Ready?"),
-    target: "_blank",
-    rel: "noopener",
-    class: "btn-study",
-    style: "flex:1;justify-content:center;padding:0.75rem;text-decoration:none;background:rgba(16,163,127,0.15);border-color:rgba(16,163,127,0.4);color:#10a37f;"
-  }, "2. Open ChatGPT →")), /* @__PURE__ */ createElement("div", {
+  }, ctx.copied ? "✓ Copied — paste into ChatGPT!" : "Copy & Open ChatGPT")), /* @__PURE__ */ createElement("div", {
     class: "gcard",
     style: "padding:1rem;margin-bottom:16px;"
   }, /* @__PURE__ */ createElement("div", {
@@ -1355,6 +1383,20 @@ function Assess() {
   const scoreLabels = ["", "Blank", "Wrong", "Hard", "Good", "Easy"];
   const scoreCls = ["", "s1", "s2", "s3", "s4", "s5"];
   const scoreColors = ["", "#f87171", "#fb923c", "#fbbf24", "#4ade80", "#60a5fa"];
+  const parseMeta = (text) => {
+    const meta = {};
+    const metaMatch = text.match(/<!--\s*SRS_META\s*-->([\s\S]*?)(?:<!--|```|###|$)/i);
+    if (!metaMatch)
+      return meta;
+    const lines = metaMatch[1].trim().split(`
+`);
+    for (const line of lines) {
+      const m = line.match(/^(\w+)\s*:\s*(.+)/);
+      if (m)
+        meta[m[1]] = m[2].trim();
+    }
+    return meta;
+  };
   const doSave = () => {
     const states = loadStates();
     sessionCards.forEach((c) => {
@@ -1364,25 +1406,59 @@ function Assess() {
       states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
     });
     saveStates(states);
+    if (ctx.assessMeta) {
+      const cfg = loadCfg();
+      if (ctx.assessMeta.weakAreas)
+        cfg.lastWeakAreas = ctx.assessMeta.weakAreas;
+      if (ctx.assessMeta.strongAreas)
+        cfg.lastStrongAreas = ctx.assessMeta.strongAreas;
+      if (ctx.assessMeta.recommendation)
+        cfg.lastRecommendation = ctx.assessMeta.recommendation;
+      if (ctx.assessMeta.difficulty)
+        cfg.lastDifficulty = ctx.assessMeta.difficulty;
+      if (ctx.assessMeta.avgScore)
+        cfg.lastAvgScore = ctx.assessMeta.avgScore;
+      cfg.lastSessionDate = today();
+      saveCfg(cfg);
+    }
     ctx.assessSaved = true;
     render();
   };
   if (ctx.assessSaved) {
     const avg = sessionCards.length ? (sessionCards.reduce((s, c) => s + (scores[c.id] || 1), 0) / sessionCards.length).toFixed(1) : "0";
     const correct = sessionCards.filter((c) => (scores[c.id] || 0) >= 4).length;
+    const meta = ctx.assessMeta;
     return /* @__PURE__ */ createElement("div", {
       class: "shell",
       style: "display:flex;align-items:center;justify-content:center;min-height:100vh;"
     }, /* @__PURE__ */ createElement("div", {
       class: "gcard fade-in",
-      style: "padding:2.5rem;max-width:400px;width:100%;text-align:center;"
+      style: "padding:2.5rem;max-width:440px;width:100%;text-align:center;"
     }, /* @__PURE__ */ createElement("div", {
       style: "font-size:2.5rem;margin-bottom:12px;"
     }, "✓"), /* @__PURE__ */ createElement("div", {
       style: "font-size:1.375rem;font-weight:700;margin-bottom:6px;"
     }, "Session ", sessionIdx + 1, " Saved"), /* @__PURE__ */ createElement("div", {
-      style: "font-size:0.875rem;color:var(--text2);margin-bottom:1.5rem;"
-    }, correct, "/", sessionCards.length, " correct · avg ", avg, "/5"), /* @__PURE__ */ createElement("div", {
+      style: "font-size:0.875rem;color:var(--text2);margin-bottom:1rem;"
+    }, correct, "/", sessionCards.length, " correct · avg ", avg, "/5"), meta && (meta.weakAreas || meta.recommendation) && /* @__PURE__ */ createElement("div", {
+      style: "text-align:left;background:var(--bg-card2);border-radius:12px;padding:1rem;margin-bottom:1rem;font-size:0.8125rem;"
+    }, meta.weakAreas && /* @__PURE__ */ createElement("div", {
+      style: "margin-bottom:6px;"
+    }, /* @__PURE__ */ createElement("span", {
+      style: "color:var(--danger);font-weight:600;"
+    }, "Weak: "), /* @__PURE__ */ createElement("span", {
+      style: "color:var(--text2);"
+    }, meta.weakAreas)), meta.strongAreas && /* @__PURE__ */ createElement("div", {
+      style: "margin-bottom:6px;"
+    }, /* @__PURE__ */ createElement("span", {
+      style: "color:var(--success);font-weight:600;"
+    }, "Strong: "), /* @__PURE__ */ createElement("span", {
+      style: "color:var(--text2);"
+    }, meta.strongAreas)), meta.recommendation && /* @__PURE__ */ createElement("div", null, /* @__PURE__ */ createElement("span", {
+      style: "color:var(--accent);font-weight:600;"
+    }, "Next: "), /* @__PURE__ */ createElement("span", {
+      style: "color:var(--text2);"
+    }, meta.recommendation))), /* @__PURE__ */ createElement("div", {
       style: "display:flex;gap:10px;"
     }, /* @__PURE__ */ createElement("button", {
       class: "btn-study",
@@ -1390,6 +1466,7 @@ function Assess() {
       onclick: () => {
         delete ctx.assessScores;
         delete ctx.assessSaved;
+        delete ctx.assessMeta;
         ctx.sessionIdx = sessionIdx + 1;
         ctx.assessSessionIdx = sessionIdx + 1;
         go("assess");
@@ -1435,6 +1512,7 @@ function Assess() {
       if (parsed[c.id] != null)
         scores[c.id] = parsed[c.id];
     });
+    ctx.assessMeta = parseMeta(text);
     ctx.pasteError = null;
     ctx.pasteSuccess = matched + "/" + sessionCards.length + " cards auto-scored" + (matched < sessionCards.length ? " — score the rest manually" : "");
     render();
