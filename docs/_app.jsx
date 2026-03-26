@@ -25,13 +25,19 @@ const daysLeft = cfg => cfg.examDate ? Math.max(0, Math.ceil((new Date(cfg.examD
 // ─── SRS ─────────────────────────────────────────────────────────────────────
 const isSeen = (states, id) => !!states[id]?.lastScore;
 const isReviewDue = (states, id) => isSeen(states, id) && states[id].dueDate <= today();
+function calcNewPerDay(cards, states, cfg) {
+  const unseen = cards.filter(c => !isSeen(states, c.id)).length;
+  const dr = daysLeft(cfg);
+  const deadline = Math.max(1, dr - 14); // finish 2 weeks before exam
+  const auto = Math.ceil(unseen / deadline);
+  // Use configured value if set, but show auto-calculated as suggestion
+  return { perDay: cfg.newCardsPerDay || Math.max(10, Math.min(auto, 50)), auto };
+}
 function getNewCardsToday(cards, states, cfg) {
-  const perDay = cfg.newCardsPerDay || 20;
-  // Count how many new cards were introduced today
+  const { perDay } = calcNewPerDay(cards, states, cfg);
   const t = today();
   const introducedToday = cards.filter(c => states[c.id]?.introducedOn === t).length;
   const remaining = Math.max(0, perDay - introducedToday);
-  // Return unseen cards up to the remaining quota
   return cards.filter(c => !isSeen(states, c.id) && !states[c.id]?.introducedOn).slice(0, remaining);
 }
 function getDue(cards) {
@@ -150,18 +156,32 @@ function Dashboard() {
           </div>
         }
 
-        {/* actions */}
-        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-          <button
-            class={'btn-study' + (stats.due === 0 ? ' disabled' : '')}
-            onclick={() => stats.due > 0 && startSession()}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            {stats.due > 0 ? `Study Now — ${stats.reviews} review${stats.reviews === 1 ? '' : 's'} + ${stats.newToday} new` : 'All Caught Up'}
+        {/* daily workflow */}
+        <div class="gcard" style="padding:1.25rem;margin-bottom:16px;">
+          <div class="label-xs" style="margin-bottom:12px;">Daily Workflow</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class={'btn-study' + (stats.due === 0 ? ' disabled' : '')} style="width:100%;justify-content:center;" onclick={() => stats.due > 0 && go('prompt')}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              </svg>
+              {stats.due > 0 ? `1. Get Daily Prompt (${stats.reviews} reviews + ${stats.newToday} new)` : 'All Caught Up for Today'}
+            </button>
+            <button class="btn-ghost" style="width:100%;justify-content:center;padding:0.65rem;" onclick={() => go('assess')}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              2. Submit Results from AI Session
+            </button>
+          </div>
+        </div>
+
+        {/* quick study + nav */}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <button class={'btn-ghost' + (stats.due === 0 ? ' disabled' : '')} onclick={() => stats.due > 0 && startSession()}>
+            Quick Study (in-app cards)
           </button>
           <div style="display:flex;gap:8px;margin-left:auto;">
-            {[['Prompt','prompt'],['Assess','assess'],['Stats','stats'],['Topics','topics'],['Config','config']].map(([l,v]) =>
+            {[['Stats','stats'],['Topics','topics'],['Config','config']].map(([l,v]) =>
               <button class="btn-ghost" onclick={() => go(v)}>{l}</button>
             )}
           </div>
@@ -486,20 +506,118 @@ function Config() {
   );
 }
 
+function buildPrompt(cards, cfg) {
+  const states = loadStates();
+  const due = getDue(cards);
+  const dr = daysLeft(cfg);
+  const { perDay, auto } = calcNewPerDay(cards, states, cfg);
+  const reviews = due.filter(c => isSeen(states, c.id));
+  const newCards = due.filter(c => !isSeen(states, c.id));
+  const sessionCards = due;
+  const byTopic = {};
+  sessionCards.forEach(c => { const t = c.topicId || c.tags?.[0] || 'general'; byTopic[t] = (byTopic[t] || []); byTopic[t].push(c); });
+  const topicSummary = Object.entries(byTopic).map(([t, cs]) => `- ${t}: ${cs.length} cards`).join('\n');
+  const cardsJson = JSON.stringify(sessionCards.map(c => ({ id: c.id, question: c.question, answer: c.answer, difficulty: c.difficulty, tags: c.tags, bloomLevel: c.bloomLevel, explanation: c.explanation })), null, 2);
+
+  return `# MCCQE1 Daily Interactive Study Session
+
+You are an expert medical education tutor preparing a student for the MCCQE Part 1 exam on ${cfg.examDate}. There are ${dr} days remaining. The student must master ${cards.length.toLocaleString()} flashcards by then.
+
+## Today's Session: ${sessionCards.length} cards (${reviews.length} reviews + ${newCards.length} new)
+
+### Topics Today
+${topicSummary}
+
+## Your Teaching Approach
+
+### Phase 1: Knowledge Discovery (first 5-10 minutes)
+Before teaching anything, PROBE the student's existing knowledge on today's topics:
+- Ask open-ended questions: "What do you know about [topic]?" or "Walk me through how you'd approach a patient with [symptom]"
+- Listen for misconceptions, gaps, and strengths
+- Identify their baseline for each topic area
+- Note which concepts they can explain vs. which they only recognize
+
+### Phase 2: Conversational Teaching (main session)
+For each card/topic cluster, use this Socratic progression:
+
+1. **Anchor** — Connect to something they already know: "You mentioned X earlier — this builds on that..."
+2. **Probe** — Ask them the card question conversationally (don't just read it). Let them reason through it.
+3. **If correct** — Deepen: ask WHY, ask for the mechanism, ask what would change if a variable shifted. Cement all the factors that affect this concept.
+4. **If wrong/uncertain** — Teach comprehensively:
+   - Explain the core concept in 2-3 clear sentences
+   - Give the mechanism/pathophysiology
+   - Provide a clinical scenario that illustrates it
+   - Explain the key differentiating factors from similar conditions
+   - Connect it to related concepts they'll see on the exam
+5. **Cement** — After teaching, re-test with a slightly different angle to confirm understanding
+
+### Phase 3: Integration & Wrap-up
+- Connect today's topics across systems (e.g., how a renal condition affects cardiac management)
+- Give 2-3 "exam-day tips" for today's weak areas
+- Summarize what they nailed and what needs review
+
+## Pacing Rules
+- Spend more time on topics where the student shows gaps
+- If they ace a topic quickly, move on — don't belabor strong areas
+- For new cards, teach thoroughly. For review cards, test quickly and only re-teach if they've forgotten.
+- Target: finish all ${sessionCards.length} cards within 45-60 minutes
+
+## Today's Cards (JSON)
+
+Each card has: id, question, answer, difficulty (1-5), tags, bloomLevel (recall/apply/analyze), explanation.
+
+\`\`\`json
+${cardsJson}
+\`\`\`
+
+## CRITICAL: End-of-Session Output
+
+When the session is complete (all cards reviewed OR student ends early), you MUST output this exact JSON structure. The student will paste it back into their SRS app to update their schedule.
+
+Scoring guide:
+- 5: Instant correct, high confidence, could explain to others
+- 4: Correct with minor hesitation
+- 3: Correct after one hint or partial prompt
+- 2: Partially correct or needed teaching first
+- 1: Incorrect, skipped, or couldn't answer after teaching
+- 0: Not attempted (session ended early)
+
+\`\`\`json
+{
+  "cardsReviewed": [
+    { "id": "card_id_here", "score": 4, "confident": true, "timeSpentSeconds": 30 }
+  ],
+  "sessionSummary": {
+    "totalCards": ${sessionCards.length},
+    "correctCount": 0,
+    "avgScore": 0.0,
+    "weakAreas": ["topic1"],
+    "strongAreas": ["topic2"]
+  },
+  "recommendations": {
+    "topicsToReview": ["topic1"],
+    "adjustedDifficulty": "increase | maintain | decrease",
+    "nextSessionFocus": "description of what to prioritize next"
+  },
+  "masteryEstimate": 0
+}
+\`\`\`
+
+Include ALL cards — score 0 for any not attempted. The student's SRS schedule depends on accurate scoring.
+
+## Begin
+
+Start by greeting the student and asking what they remember about today's topics. Do NOT reveal answers or jump straight to quizzing — discover their knowledge first, then teach conversationally.`;
+}
+
 function Prompt() {
   const cfg = loadCfg(), due = getDue(CARDS);
+  const states = loadStates();
   const dr = daysLeft(cfg);
-  const dailyTarget = Math.ceil(CARDS.length / Math.max(dr, 1));
-  const sessionCards = due.slice(0, Math.min(due.length, 20));
-  const cardsJson = JSON.stringify(sessionCards.map(c => ({ id: c.id, question: c.question, answer: c.answer, difficulty: c.difficulty, tags: c.tags, bloomLevel: c.bloomLevel, explanation: c.explanation })), null, 2);
-  const studyPlan = `Day ${Math.max(1, 67 - dr)} of 67 | ${dr} days remaining | ${due.length} cards due | Target: ${dailyTarget} cards/day | Session: ${sessionCards.length} cards`;
-
-  let promptText = '';
-  fetch('clipboard_prompt.md').then(r => r.text()).then(t => { promptText = t; render(); }).catch(() => {});
-
-  const filled = (ctx.promptText || promptText || '(Loading prompt template...)')
-    .replace('{{STUDY_PLAN}}', studyPlan)
-    .replace('{{CARDS_JSON}}', cardsJson);
+  const { perDay } = calcNewPerDay(CARDS, states, cfg);
+  const reviews = due.filter(c => isSeen(states, c.id));
+  const newCards = due.filter(c => !isSeen(states, c.id));
+  const filled = buildPrompt(CARDS, cfg);
 
   return (
     <div class="shell fade-in">
@@ -521,16 +639,28 @@ function Prompt() {
 
         <div class="gcard" style="padding:1rem;margin-bottom:16px;">
           <div style="display:flex;flex-wrap:wrap;gap:12px;">
-            <div><div class="label-xs">Cards Due</div><div style="font-size:1.25rem;font-weight:700;color:var(--accent);">{due.length}</div></div>
-            <div><div class="label-xs">Session Size</div><div style="font-size:1.25rem;font-weight:700;">{sessionCards.length}</div></div>
+            <div><div class="label-xs">Reviews</div><div style="font-size:1.25rem;font-weight:700;color:var(--accent);">{reviews.length}</div></div>
+            <div><div class="label-xs">New</div><div style="font-size:1.25rem;font-weight:700;color:var(--success);">{newCards.length}</div></div>
+            <div><div class="label-xs">Total Session</div><div style="font-size:1.25rem;font-weight:700;">{due.length}</div></div>
             <div><div class="label-xs">Days Left</div><div style="font-size:1.25rem;font-weight:700;">{dr}</div></div>
-            <div><div class="label-xs">Daily Target</div><div style="font-size:1.25rem;font-weight:700;">{dailyTarget}</div></div>
+            <div><div class="label-xs">New/Day</div><div style="font-size:1.25rem;font-weight:700;">{perDay}</div></div>
           </div>
         </div>
 
+        <div class="gcard" style="padding:1rem;margin-bottom:16px;">
+          <div class="label-xs" style="margin-bottom:6px;">How to use</div>
+          <ol style="font-size:0.8125rem;color:var(--text2);line-height:1.6;margin:0;padding-left:1.25rem;">
+            <li>Click <strong>Copy Prompt</strong> above</li>
+            <li>Paste into any LLM (Claude, GPT, etc.) to start your session</li>
+            <li>The AI will probe your knowledge, then teach conversationally</li>
+            <li>At the end, the AI outputs a JSON block with your scores</li>
+            <li>Go to <strong>Assess</strong> on the dashboard, paste the JSON, and save to update your SRS</li>
+          </ol>
+        </div>
+
         <div class="gcard" style="padding:1.25rem;">
-          <div class="label-xs" style="margin-bottom:8px;">Clipboard Prompt (paste into your AI agent)</div>
-          <pre style="font-size:0.75rem;line-height:1.5;color:var(--text2);white-space:pre-wrap;word-break:break-word;max-height:600px;overflow-y:auto;">{filled}</pre>
+          <div class="label-xs" style="margin-bottom:8px;">Generated Prompt (paste into your AI)</div>
+          <pre style="font-size:0.7rem;line-height:1.5;color:var(--text2);white-space:pre-wrap;word-break:break-word;max-height:500px;overflow-y:auto;">{filled}</pre>
         </div>
       </div>
     </div>
@@ -595,7 +725,7 @@ function AssessResults() {
     cards.forEach(c => {
       const prev = states[c.id] || defState();
       const next = calcSM2(prev, c.score);
-      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: c.score };
+      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: c.score, introducedOn: prev.introducedOn || today() };
     });
     saveStates(states);
     ctx.saved = true;
