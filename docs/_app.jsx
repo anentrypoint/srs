@@ -721,7 +721,7 @@ function Assess() {
     if (!metaMatch) return meta;
     const lines = metaMatch[1].trim().split('\n');
     for (const line of lines) {
-      const m = line.match(/^(\w+)\s*:\s*(.+)/);
+      const m = line.trim().match(/^(\w+)\s*:\s*(.+)/);
       if (m) meta[m[1]] = m[2].trim();
     }
     return meta;
@@ -733,7 +733,8 @@ function Assess() {
       const score = scores[c.id] ?? 1;
       const prev = states[c.id] || defState();
       const next = calcSM2(prev, score);
-      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
+      const due = score < 3 ? today() : addDays(next.interval);
+      states[c.id] = { ...next, dueDate: due, lastScore: score, introducedOn: prev.introducedOn || today() };
     });
     saveStates(states);
     if (ctx.assessMeta) {
@@ -746,13 +747,14 @@ function Assess() {
       cfg.lastSessionDate = today();
       saveCfg(cfg);
     }
+    const scoreValues = sessionCards.map(c => scores[c.id] ?? 1);
+    ctx.savedStats = { avg: (scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length).toFixed(1), correct: scoreValues.filter(s => s >= 4).length, total: sessionCards.length };
     ctx.assessSaved = true;
     render();
   };
 
   if (ctx.assessSaved) {
-    const avg = sessionCards.length ? (sessionCards.reduce((s, c) => s + (scores[c.id] || 1), 0) / sessionCards.length).toFixed(1) : '0';
-    const correct = sessionCards.filter(c => (scores[c.id] || 0) >= 4).length;
+    const { avg, correct } = ctx.savedStats ?? { avg: '0', correct: 0 };
     const meta = ctx.assessMeta;
     return (
       <div class="shell" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -760,7 +762,7 @@ function Assess() {
           <div style="font-size:2.5rem;margin-bottom:12px;">✓</div>
           <div style="font-size:1.375rem;font-weight:700;margin-bottom:6px;">Session {sessionIdx + 1} Saved</div>
           <div style="font-size:0.875rem;color:var(--text2);margin-bottom:1rem;">
-            {correct}/{sessionCards.length} correct · avg {avg}/5
+            {correct}/{ctx.savedStats?.total ?? sessionCards.length} correct · avg {avg}/5
           </div>
           {meta && (meta.weakAreas || meta.recommendation) &&
             <div style="text-align:left;background:var(--bg-card2);border-radius:12px;padding:1rem;margin-bottom:1rem;font-size:0.8125rem;">
@@ -771,11 +773,11 @@ function Assess() {
           }
           <div style="display:flex;flex-direction:column;gap:8px;">
             {sessionIdx < totalSessions - 1 &&
-              <button class="btn-study" style="width:100%;justify-content:center;" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; delete ctx.assessMeta; ctx.sessionIdx = sessionIdx + 1; ctx.copied = false; go('prompt'); }}>
+              <button class="btn-study" style="width:100%;justify-content:center;" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; delete ctx.assessMeta; delete ctx.savedStats; ctx.sessionIdx = sessionIdx + 1; ctx.copied = false; go('prompt'); }}>
                 Next: Get Session {sessionIdx + 2} Prompt
               </button>
             }
-            <button class="btn-ghost" style="width:100%;justify-content:center;" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; delete ctx.assessMeta; go('dashboard'); }}>
+            <button class="btn-ghost" style="width:100%;justify-content:center;" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; delete ctx.assessMeta; delete ctx.savedStats; go('dashboard'); }}>
               {sessionIdx >= totalSessions - 1 ? 'All Sessions Done — Dashboard' : 'Dashboard'}
             </button>
           </div>

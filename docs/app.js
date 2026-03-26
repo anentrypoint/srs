@@ -1395,7 +1395,7 @@ function Assess() {
     const lines = metaMatch[1].trim().split(`
 `);
     for (const line of lines) {
-      const m = line.match(/^(\w+)\s*:\s*(.+)/);
+      const m = line.trim().match(/^(\w+)\s*:\s*(.+)/);
       if (m)
         meta[m[1]] = m[2].trim();
     }
@@ -1407,7 +1407,8 @@ function Assess() {
       const score = scores[c.id] ?? 1;
       const prev = states[c.id] || defState();
       const next = calcSM2(prev, score);
-      states[c.id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
+      const due2 = score < 3 ? today() : addDays(next.interval);
+      states[c.id] = { ...next, dueDate: due2, lastScore: score, introducedOn: prev.introducedOn || today() };
     });
     saveStates(states);
     if (ctx.assessMeta) {
@@ -1425,12 +1426,13 @@ function Assess() {
       cfg.lastSessionDate = today();
       saveCfg(cfg);
     }
+    const scoreValues = sessionCards.map((c) => scores[c.id] ?? 1);
+    ctx.savedStats = { avg: (scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length).toFixed(1), correct: scoreValues.filter((s) => s >= 4).length, total: sessionCards.length };
     ctx.assessSaved = true;
     render();
   };
   if (ctx.assessSaved) {
-    const avg = sessionCards.length ? (sessionCards.reduce((s, c) => s + (scores[c.id] || 1), 0) / sessionCards.length).toFixed(1) : "0";
-    const correct = sessionCards.filter((c) => (scores[c.id] || 0) >= 4).length;
+    const { avg, correct } = ctx.savedStats ?? { avg: "0", correct: 0 };
     const meta = ctx.assessMeta;
     return /* @__PURE__ */ createElement("div", {
       class: "shell",
@@ -1444,7 +1446,7 @@ function Assess() {
       style: "font-size:1.375rem;font-weight:700;margin-bottom:6px;"
     }, "Session ", sessionIdx + 1, " Saved"), /* @__PURE__ */ createElement("div", {
       style: "font-size:0.875rem;color:var(--text2);margin-bottom:1rem;"
-    }, correct, "/", sessionCards.length, " correct · avg ", avg, "/5"), meta && (meta.weakAreas || meta.recommendation) && /* @__PURE__ */ createElement("div", {
+    }, correct, "/", ctx.savedStats?.total ?? sessionCards.length, " correct · avg ", avg, "/5"), meta && (meta.weakAreas || meta.recommendation) && /* @__PURE__ */ createElement("div", {
       style: "text-align:left;background:var(--bg-card2);border-radius:12px;padding:1rem;margin-bottom:1rem;font-size:0.8125rem;"
     }, meta.weakAreas && /* @__PURE__ */ createElement("div", {
       style: "margin-bottom:6px;"
@@ -1471,6 +1473,7 @@ function Assess() {
         delete ctx.assessScores;
         delete ctx.assessSaved;
         delete ctx.assessMeta;
+        delete ctx.savedStats;
         ctx.sessionIdx = sessionIdx + 1;
         ctx.copied = false;
         go("prompt");
@@ -1482,6 +1485,7 @@ function Assess() {
         delete ctx.assessScores;
         delete ctx.assessSaved;
         delete ctx.assessMeta;
+        delete ctx.savedStats;
         go("dashboard");
       }
     }, sessionIdx >= totalSessions - 1 ? "All Sessions Done — Dashboard" : "Dashboard"))));
