@@ -42,16 +42,19 @@ function getNewCardsToday(cards, states, cfg) {
   return cards.filter(c => !isSeen(states, c.id) && !states[c.id]?.introducedOn).slice(0, remaining);
 }
 function getDue(cards) {
-  const s = loadStates(), cfg = loadCfg();
+  const s = loadStates(), cfg = loadCfg(), t = today();
   const reviews = cards.filter(c => isReviewDue(s, c.id));
+  const failed = cards.filter(c => s[c.id]?.lastScore != null && s[c.id].lastScore < 3 && s[c.id].dueDate <= t);
   const newCards = getNewCardsToday(cards, s, cfg);
-  return [...reviews, ...newCards];
+  const ids = new Set();
+  return [...failed, ...reviews, ...newCards].filter(c => ids.has(c.id) ? false : (ids.add(c.id), true));
 }
 function updateCard(id, score) {
   const states = loadStates();
   const prev = states[id] ?? defState();
   const next = calcSM2(prev, score);
-  states[id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
+  const due = score < 3 ? today() : addDays(next.interval);
+  states[id] = { ...next, dueDate: due, lastScore: score, introducedOn: prev.introducedOn || today() };
   saveStates(states);
 }
 function getStats(cards) {
@@ -59,12 +62,13 @@ function getStats(cards) {
   const seen = cards.filter(c => isSeen(states, c.id));
   const unseen = cards.filter(c => !isSeen(states, c.id));
   const reviews = cards.filter(c => isReviewDue(states, c.id));
+  const failed = cards.filter(c => states[c.id]?.lastScore != null && states[c.id].lastScore < 3 && states[c.id].dueDate <= t);
   const newToday = getNewCardsToday(cards, states, cfg);
-  const due = reviews.length + newToday.length;
+  const due = getDue(cards).length;
   const avgEF = seen.length ? seen.reduce((s, c) => s + (states[c.id]?.easeFactor ?? 2.5), 0) / seen.length : 0;
   const scored = cards.filter(c => states[c.id]?.lastScore != null);
   const avgScore = scored.length ? scored.reduce((s, c) => s + states[c.id].lastScore, 0) / scored.length : null;
-  return { total: cards.length, due, reviews: reviews.length, newToday: newToday.length, seen: seen.length, unseen: unseen.length, avgEF, avgScore };
+  return { total: cards.length, due, reviews: reviews.length, failed: failed.length, newToday: newToday.length, seen: seen.length, unseen: unseen.length, avgEF, avgScore };
 }
 
 // ─── App state ────────────────────────────────────────────────────────────────
@@ -116,13 +120,13 @@ function Dashboard() {
         {/* stat tiles */}
         <div class="stat-grid" style="margin-bottom:20px;">
           {[
-            { key: 'Reviews Due', val: stats.reviews,         hi: stats.reviews > 0 },
-            { key: 'New Today',   val: stats.newToday,        hi: stats.newToday > 0 },
-            { key: 'Learned',     val: stats.seen.toLocaleString() + ' / ' + stats.total.toLocaleString(), hi: false },
-            { key: 'Days Left',   val: dr,                    hi: dr <= 14 },
-          ].map(({ key, val, hi }) =>
+            { key: 'Due Today', val: stats.due,              hi: stats.due > 0 },
+            { key: 'Re-study',  val: stats.failed,           hi: stats.failed > 0, warn: stats.failed > 0 },
+            { key: 'Learned',   val: stats.seen.toLocaleString() + ' / ' + stats.total.toLocaleString(), hi: false },
+            { key: 'Days Left', val: dr,                     hi: dr <= 14 },
+          ].map(({ key, val, hi, warn }) =>
             <div class={'stat-tile' + (hi ? ' hi' : '')}>
-              <div class="val">{String(val)}</div>
+              <div class="val" style={warn ? 'color:var(--danger)' : ''}>{String(val)}</div>
               <div class="key">{key}</div>
             </div>
           )}
@@ -660,30 +664,29 @@ function Prompt() {
           <button class="btn-ghost" style={sessionIdx >= totalSessions - 1 ? 'opacity:0.3;pointer-events:none;' : ''} onclick={() => { ctx.sessionIdx = sessionIdx + 1; ctx.copied = false; render(); }}>Next →</button>
         </div>
 
-        <div style="display:flex;gap:10px;margin-bottom:16px;">
-          <button class="btn-study" style="flex:1;justify-content:center;padding:0.75rem;" onclick={() => {
-            if (navigator.share) {
-              navigator.share({ text: filled }).then(() => { ctx.copied = true; render(); }).catch(() => {
-                navigator.clipboard.writeText(filled); ctx.copied = true; render();
-              });
-            } else {
-              navigator.clipboard.writeText(filled).then(() => {
-                ctx.copied = true; render();
-                window.open('https://chatgpt.com/', '_blank');
-              });
-            }
-          }}>
-            {ctx.copied ? '✓ Copied — paste into ChatGPT!' : 'Copy & Open ChatGPT'}
-          </button>
-        </div>
-
-        <div class="gcard" style="padding:1rem;margin-bottom:16px;">
-          <div class="label-xs" style="margin-bottom:6px;">How it works</div>
-          <ol style="font-size:0.8125rem;color:var(--text2);line-height:1.7;margin:0;padding-left:1.25rem;">
-            <li><strong>Send</strong> the prompt to ChatGPT (share sheet on mobile, clipboard on desktop)</li>
-            <li><strong>Study</strong> — the AI teaches and quizzes you on {Math.min(SESSION_SIZE, due.length - sessionIdx * SESSION_SIZE)} cards</li>
-            <li><strong>Return here</strong> → paste the scores ChatGPT gives you, or rate each card manually</li>
-          </ol>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          {!ctx.copied
+            ? <button class="btn-study" style="width:100%;justify-content:center;padding:0.75rem;" onclick={() => {
+                if (navigator.share) {
+                  navigator.share({ text: filled }).then(() => { ctx.copied = true; render(); }).catch(() => {
+                    navigator.clipboard.writeText(filled); ctx.copied = true; render();
+                  });
+                } else {
+                  navigator.clipboard.writeText(filled).then(() => {
+                    ctx.copied = true; render();
+                    window.open('https://chatgpt.com/', '_blank');
+                  });
+                }
+              }}>
+                1. Copy & Open ChatGPT
+              </button>
+            : <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="text-align:center;font-size:0.875rem;color:var(--success);font-weight:600;padding:8px;">✓ Prompt copied — study in ChatGPT, then come back</div>
+                <button class="btn-study" style="width:100%;justify-content:center;padding:0.75rem;" onclick={() => { ctx.assessSessionIdx = sessionIdx; delete ctx.assessScores; delete ctx.assessMeta; delete ctx.pasteError; delete ctx.pasteSuccess; go('assess'); }}>
+                  2. Import Scores from Session {sessionIdx + 1}
+                </button>
+              </div>
+          }
         </div>
 
         <div class="gcard" style="padding:1.25rem;">
@@ -766,11 +769,15 @@ function Assess() {
               {meta.recommendation && <div><span style="color:var(--accent);font-weight:600;">Next: </span><span style="color:var(--text2);">{meta.recommendation}</span></div>}
             </div>
           }
-          <div style="display:flex;gap:10px;">
-            <button class="btn-study" style="flex:1;justify-content:center;" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; delete ctx.assessMeta; ctx.sessionIdx = sessionIdx + 1; ctx.assessSessionIdx = sessionIdx + 1; go('assess'); }}>
-              {sessionIdx < totalSessions - 1 ? `Score Session ${sessionIdx + 2}` : 'All Sessions Done'}
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            {sessionIdx < totalSessions - 1 &&
+              <button class="btn-study" style="width:100%;justify-content:center;" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; delete ctx.assessMeta; ctx.sessionIdx = sessionIdx + 1; ctx.copied = false; go('prompt'); }}>
+                Next: Get Session {sessionIdx + 2} Prompt
+              </button>
+            }
+            <button class="btn-ghost" style="width:100%;justify-content:center;" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; delete ctx.assessMeta; go('dashboard'); }}>
+              {sessionIdx >= totalSessions - 1 ? 'All Sessions Done — Dashboard' : 'Dashboard'}
             </button>
-            <button class="btn-ghost" onclick={() => { delete ctx.assessScores; delete ctx.assessSaved; go('dashboard'); }}>Dashboard</button>
           </div>
         </div>
       </div>

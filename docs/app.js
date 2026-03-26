@@ -544,16 +544,19 @@ function getNewCardsToday(cards, states, cfg) {
   return cards.filter((c) => !isSeen(states, c.id) && !states[c.id]?.introducedOn).slice(0, remaining);
 }
 function getDue(cards) {
-  const s = loadStates(), cfg = loadCfg();
+  const s = loadStates(), cfg = loadCfg(), t = today();
   const reviews = cards.filter((c) => isReviewDue(s, c.id));
+  const failed = cards.filter((c) => s[c.id]?.lastScore != null && s[c.id].lastScore < 3 && s[c.id].dueDate <= t);
   const newCards = getNewCardsToday(cards, s, cfg);
-  return [...reviews, ...newCards];
+  const ids = new Set;
+  return [...failed, ...reviews, ...newCards].filter((c) => ids.has(c.id) ? false : (ids.add(c.id), true));
 }
 function updateCard(id, score) {
   const states = loadStates();
   const prev = states[id] ?? defState();
   const next = calcSM2(prev, score);
-  states[id] = { ...next, dueDate: addDays(next.interval), lastScore: score, introducedOn: prev.introducedOn || today() };
+  const due = score < 3 ? today() : addDays(next.interval);
+  states[id] = { ...next, dueDate: due, lastScore: score, introducedOn: prev.introducedOn || today() };
   saveStates(states);
 }
 function getStats(cards) {
@@ -561,12 +564,13 @@ function getStats(cards) {
   const seen = cards.filter((c) => isSeen(states, c.id));
   const unseen = cards.filter((c) => !isSeen(states, c.id));
   const reviews = cards.filter((c) => isReviewDue(states, c.id));
+  const failed = cards.filter((c) => states[c.id]?.lastScore != null && states[c.id].lastScore < 3 && states[c.id].dueDate <= t);
   const newToday = getNewCardsToday(cards, states, cfg);
-  const due = reviews.length + newToday.length;
+  const due = getDue(cards).length;
   const avgEF = seen.length ? seen.reduce((s, c) => s + (states[c.id]?.easeFactor ?? 2.5), 0) / seen.length : 0;
   const scored = cards.filter((c) => states[c.id]?.lastScore != null);
   const avgScore = scored.length ? scored.reduce((s, c) => s + states[c.id].lastScore, 0) / scored.length : null;
-  return { total: cards.length, due, reviews: reviews.length, newToday: newToday.length, seen: seen.length, unseen: unseen.length, avgEF, avgScore };
+  return { total: cards.length, due, reviews: reviews.length, failed: failed.length, newToday: newToday.length, seen: seen.length, unseen: unseen.length, avgEF, avgScore };
 }
 var CARDS = [];
 var view = "loading";
@@ -627,14 +631,15 @@ function Dashboard() {
     class: "stat-grid",
     style: "margin-bottom:20px;"
   }, [
-    { key: "Reviews Due", val: stats.reviews, hi: stats.reviews > 0 },
-    { key: "New Today", val: stats.newToday, hi: stats.newToday > 0 },
+    { key: "Due Today", val: stats.due, hi: stats.due > 0 },
+    { key: "Re-study", val: stats.failed, hi: stats.failed > 0, warn: stats.failed > 0 },
     { key: "Learned", val: stats.seen.toLocaleString() + " / " + stats.total.toLocaleString(), hi: false },
     { key: "Days Left", val: dr, hi: dr <= 14 }
-  ].map(({ key, val, hi }) => /* @__PURE__ */ createElement("div", {
+  ].map(({ key, val, hi, warn }) => /* @__PURE__ */ createElement("div", {
     class: "stat-tile" + (hi ? " hi" : "")
   }, /* @__PURE__ */ createElement("div", {
-    class: "val"
+    class: "val",
+    style: warn ? "color:var(--danger)" : ""
   }, String(val)), /* @__PURE__ */ createElement("div", {
     class: "key"
   }, key)))), /* @__PURE__ */ createElement("div", {
@@ -1322,10 +1327,10 @@ function Prompt() {
       render();
     }
   }, "Next →")), /* @__PURE__ */ createElement("div", {
-    style: "display:flex;gap:10px;margin-bottom:16px;"
-  }, /* @__PURE__ */ createElement("button", {
+    style: "display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"
+  }, !ctx.copied ? /* @__PURE__ */ createElement("button", {
     class: "btn-study",
-    style: "flex:1;justify-content:center;padding:0.75rem;",
+    style: "width:100%;justify-content:center;padding:0.75rem;",
     onclick: () => {
       if (navigator.share) {
         navigator.share({ text: filled }).then(() => {
@@ -1344,15 +1349,22 @@ function Prompt() {
         });
       }
     }
-  }, ctx.copied ? "✓ Copied — paste into ChatGPT!" : "Copy & Open ChatGPT")), /* @__PURE__ */ createElement("div", {
-    class: "gcard",
-    style: "padding:1rem;margin-bottom:16px;"
+  }, "1. Copy & Open ChatGPT") : /* @__PURE__ */ createElement("div", {
+    style: "display:flex;flex-direction:column;gap:8px;"
   }, /* @__PURE__ */ createElement("div", {
-    class: "label-xs",
-    style: "margin-bottom:6px;"
-  }, "How it works"), /* @__PURE__ */ createElement("ol", {
-    style: "font-size:0.8125rem;color:var(--text2);line-height:1.7;margin:0;padding-left:1.25rem;"
-  }, /* @__PURE__ */ createElement("li", null, /* @__PURE__ */ createElement("strong", null, "Send"), " the prompt to ChatGPT (share sheet on mobile, clipboard on desktop)"), /* @__PURE__ */ createElement("li", null, /* @__PURE__ */ createElement("strong", null, "Study"), " — the AI teaches and quizzes you on ", Math.min(SESSION_SIZE, due.length - sessionIdx * SESSION_SIZE), " cards"), /* @__PURE__ */ createElement("li", null, /* @__PURE__ */ createElement("strong", null, "Return here"), " → paste the scores ChatGPT gives you, or rate each card manually"))), /* @__PURE__ */ createElement("div", {
+    style: "text-align:center;font-size:0.875rem;color:var(--success);font-weight:600;padding:8px;"
+  }, "✓ Prompt copied — study in ChatGPT, then come back"), /* @__PURE__ */ createElement("button", {
+    class: "btn-study",
+    style: "width:100%;justify-content:center;padding:0.75rem;",
+    onclick: () => {
+      ctx.assessSessionIdx = sessionIdx;
+      delete ctx.assessScores;
+      delete ctx.assessMeta;
+      delete ctx.pasteError;
+      delete ctx.pasteSuccess;
+      go("assess");
+    }
+  }, "2. Import Scores from Session ", sessionIdx + 1))), /* @__PURE__ */ createElement("div", {
     class: "gcard",
     style: "padding:1.25rem;"
   }, /* @__PURE__ */ createElement("div", {
@@ -1451,26 +1463,28 @@ function Assess() {
     }, "Next: "), /* @__PURE__ */ createElement("span", {
       style: "color:var(--text2);"
     }, meta.recommendation))), /* @__PURE__ */ createElement("div", {
-      style: "display:flex;gap:10px;"
-    }, /* @__PURE__ */ createElement("button", {
+      style: "display:flex;flex-direction:column;gap:8px;"
+    }, sessionIdx < totalSessions - 1 && /* @__PURE__ */ createElement("button", {
       class: "btn-study",
-      style: "flex:1;justify-content:center;",
+      style: "width:100%;justify-content:center;",
       onclick: () => {
         delete ctx.assessScores;
         delete ctx.assessSaved;
         delete ctx.assessMeta;
         ctx.sessionIdx = sessionIdx + 1;
-        ctx.assessSessionIdx = sessionIdx + 1;
-        go("assess");
+        ctx.copied = false;
+        go("prompt");
       }
-    }, sessionIdx < totalSessions - 1 ? `Score Session ${sessionIdx + 2}` : "All Sessions Done"), /* @__PURE__ */ createElement("button", {
+    }, "Next: Get Session ", sessionIdx + 2, " Prompt"), /* @__PURE__ */ createElement("button", {
       class: "btn-ghost",
+      style: "width:100%;justify-content:center;",
       onclick: () => {
         delete ctx.assessScores;
         delete ctx.assessSaved;
+        delete ctx.assessMeta;
         go("dashboard");
       }
-    }, "Dashboard"))));
+    }, sessionIdx >= totalSessions - 1 ? "All Sessions Done — Dashboard" : "Dashboard"))));
   }
   const parseScores = (text) => {
     const parsed = {};
