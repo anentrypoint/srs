@@ -4,7 +4,9 @@
 
 **src/cards/extractor.js** — Card extraction pipeline
 - Processes 1595 PDF pages in 10-page epochs (160 total epochs)
-- Uses opencode CLI for AI-powered card generation from page images
+- Reads text files from `pdf_pages/text/page_XXXX.txt` (not images)
+- Uses kilo CLI as primary tool, opencode as fallback on rate-limit
+- kilo binary: `C:/Users/user/AppData/Roaming/npm/node_modules/@kilocode/cli-windows-x64/bin/kilo.exe`
 - Resumable via checkpoint system (saved after each epoch)
 - Output: JSON flashcard files with page references and metadata
 

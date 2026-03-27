@@ -1,153 +1,145 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
-import { spawn } from 'child_process';
+import { spawnSync } from 'child_process';
 import { createHash } from 'crypto';
+import { join } from 'path';
 
-const IMAGES_DIR = 'pdf_pages/images';
+const TEXT_DIR = 'pdf_pages/text';
 const OUTPUT_DIR = 'data/extracted_cards';
 const CHECKPOINT_FILE = 'data/extraction_checkpoint.json';
 const EPOCH_SIZE = 10;
+const CHUNK_SIZE = 3;
+const KILO_BIN = 'C:/Users/user/AppData/Roaming/npm/node_modules/@kilocode/cli-windows-x64/bin/kilo.exe';
+const KILO_MODEL = 'kilo/kilo-auto/free';
+const OPENCODE_CMD = 'opencode';
+const OPENCODE_MODEL = 'opencode/big-pickle';
+const EXTRACTION_PROMPT = 'You are an expert MCCQE1 medical educator. Extract every possible flashcard from the provided Toronto Notes pages as a JSON array. Output ONLY a valid JSON array with no other text or commentary. Each card: {"question":"clinical vignette or direct question","answer":"concise correct answer","difficulty":1-5,"tags":["medical topics"],"bloomLevel":"recall|apply|analyze","explanation":"2-3 sentence rationale"}';
 
-function ensureDir(dir) {
-  mkdirSync(dir, { recursive: true });
+function ensureDir(dir) { mkdirSync(dir, { recursive: true }); }
+function hashQ(q) { return 'card-' + createHash('sha256').update(q.trim().toLowerCase()).digest('hex').slice(0, 12); }
+
+export function loadCheckpoint() {
+  if (existsSync(CHECKPOINT_FILE)) return JSON.parse(readFileSync(CHECKPOINT_FILE, 'utf8'));
+  const pages = readdirSync(TEXT_DIR).length;
+  return { lastCompletedEpoch: -1, totalEpochs: Math.ceil(pages / EPOCH_SIZE), processedPages: 0, extractedCards: 0, startedAt: new Date().toISOString(), lastUpdatedAt: new Date().toISOString() };
 }
 
-function hashQuestion(q) {
-  return 'card-' + createHash('sha256').update(q.trim().toLowerCase()).digest('hex').slice(0, 12);
-}
+export function saveCheckpoint(cp) { cp.lastUpdatedAt = new Date().toISOString(); writeFileSync(CHECKPOINT_FILE, JSON.stringify(cp, null, 2)); }
 
-function loadCheckpoint() {
-  if (existsSync(CHECKPOINT_FILE)) {
-    return JSON.parse(readFileSync(CHECKPOINT_FILE, 'utf8'));
-  }
-  const pages = readdirSync(IMAGES_DIR).length;
-  return {
-    lastCompletedEpoch: -1,
-    totalEpochs: Math.ceil(pages / EPOCH_SIZE),
-    processedPages: 0,
-    extractedCards: 0,
-    startedAt: new Date().toISOString(),
-    lastUpdatedAt: new Date().toISOString()
-  };
-}
-
-function saveCheckpoint(checkpoint) {
-  checkpoint.lastUpdatedAt = new Date().toISOString();
-  writeFileSync(CHECKPOINT_FILE, JSON.stringify(checkpoint, null, 2));
-}
-
-function getEpochPages(epochNum) {
-  const pageFiles = readdirSync(IMAGES_DIR).sort();
+export function getEpochPages(epochNum) {
+  const files = readdirSync(TEXT_DIR).sort();
   const start = epochNum * EPOCH_SIZE;
-  const end = Math.min(start + EPOCH_SIZE, pageFiles.length);
-  const pages = pageFiles.slice(start, end);
-  return pages.map(p => `${IMAGES_DIR}/${p}`);
+  return files.slice(start, Math.min(start + EPOCH_SIZE, files.length)).map(f => join(TEXT_DIR, f));
 }
 
-function buildExtractionPrompt(pageFiles) {
-  const pageList = pageFiles.join(', ');
-  const systemPrompt = "You are an expert medical educator extracting MCCQE1 flashcards from Toronto Notes page images. Analyze the images and extract every possible clinical flashcard. Each card must follow MCCQE1 standards.";
-
-  const userPrompt = `Extract all MCCQE1 flashcards from these pages: ${pageList}
-
-For each card, output a JSON object with:
-- question: clinical vignette or question (string)
-- answer: concise correct answer (string)
-- difficulty: 1-5 scale (1=recall, 5=analysis)
-- tags: array of relevant medical topics
-- bloomLevel: 'recall' | 'apply' | 'analyze'
-- explanation: 2-3 sentence explanation
-
-Output ONLY a valid JSON array of card objects. No preamble or commentary.`;
-
-  return `${systemPrompt}\n\n${userPrompt}`;
-}
-
-async function extractEpoch(epochNum) {
-  const checkpoint = loadCheckpoint();
-
-  if (epochNum <= checkpoint.lastCompletedEpoch) {
-    return { skipped: true, epochNum };
+function parseStream(raw) {
+  let text = '';
+  for (const line of raw.trim().split('\n')) {
+    try {
+      const ev = JSON.parse(line);
+      if (ev.type === 'text' && ev.part?.text) text += ev.part.text;
+      if (ev.type === 'error') {
+        const s = JSON.stringify(ev.error);
+        return { text, isRateLimit: (ev.error?.data?.statusCode === 429) || /rate.?limit|too many requests|quota exceeded/i.test(s), errorMsg: ev.error?.data?.message || s };
+      }
+    } catch {}
   }
+  return { text, isRateLimit: false };
+}
+
+function extractCards(text) {
+  const stripped = text.replace(/```[a-z]*\n?/g, '').replace(/```/g, '');
+  const match = stripped.match(/\[[\s\S]*\]/);
+  if (!match) return null;
+  return JSON.parse(match[0]);
+}
+
+function runCLI(bin, args) {
+  return spawnSync(bin, args, { timeout: 300000, encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 });
+}
+
+function runChunk(tool, pageFiles, epochNum, chunkStart) {
+  const sections = pageFiles.map((f, i) => {
+    const pageNum = chunkStart + i + 1;
+    try { return `=== PAGE ${pageNum} ===\n${readFileSync(f, 'utf8')}`; }
+    catch { return `=== PAGE ${pageNum} ===\n[page unavailable]`; }
+  });
+  const message = `${EXTRACTION_PROMPT}\n\n${sections.join('\n\n')}`;
+  const r = runCLI(tool.bin, ['run', '-m', tool.model, '--format', 'json', message]);
+  return parseStream(r.stdout || '');
+}
+
+export async function extractEpoch(epochNum, preferredTool = 'kilo') {
+  const cp = loadCheckpoint();
+  if (epochNum <= cp.lastCompletedEpoch) return { skipped: true, epochNum };
 
   const pageFiles = getEpochPages(epochNum);
-  if (pageFiles.length === 0) return { cards: [], epochNum };
+  if (pageFiles.length === 0) return { cards: [], epochNum, tool: preferredTool };
 
-  const prompt = buildExtractionPrompt(pageFiles);
+  const tools = preferredTool === 'kilo'
+    ? [{ bin: KILO_BIN, model: KILO_MODEL, name: 'kilo' }, { bin: OPENCODE_CMD, model: OPENCODE_MODEL, name: 'opencode' }]
+    : [{ bin: OPENCODE_CMD, model: OPENCODE_MODEL, name: 'opencode' }, { bin: KILO_BIN, model: KILO_MODEL, name: 'kilo' }];
 
-  return new Promise((resolve, reject) => {
-    let output = '';
-    let stderr = '';
+  const allCards = [];
+  let activeTool = tools[0];
+  let rateLimitedTools = new Set();
 
-    const child = spawn('opencode', ['run', '--format', 'json', prompt], { shell: true });
+  for (let i = 0; i < pageFiles.length; i += CHUNK_SIZE) {
+    const chunk = pageFiles.slice(i, i + CHUNK_SIZE);
+    const chunkStart = epochNum * EPOCH_SIZE + i;
+    let chunkDone = false;
 
-    const timeout = setTimeout(() => {
-      child.kill();
-      reject(new Error(`Epoch ${epochNum} timeout after 300000ms`));
-    }, 300000);
+    for (const tool of tools) {
+      if (rateLimitedTools.has(tool.name)) continue;
+      const parsed = runChunk(tool, chunk, epochNum, chunkStart);
 
-    child.stdout.on('data', (data) => { output += data.toString(); });
-    child.stderr.on('data', (data) => { stderr += data.toString(); });
+      if (parsed.isRateLimit) { rateLimitedTools.add(tool.name); continue; }
+      if (!parsed.text) continue;
 
-    child.on('close', (code) => {
-      clearTimeout(timeout);
-      if (code !== 0 && code !== null) {
-        reject(new Error(`opencode exited with ${code}: ${stderr}`));
-        return;
-      }
+      const cards = extractCards(parsed.text);
+      if (!cards) continue;
 
-      try {
-        const jsonMatch = output.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-          reject(new Error(`No JSON in epoch ${epochNum}: ${output.substring(0, 200)}`));
-          return;
-        }
-
-        const cards = JSON.parse(jsonMatch[0]);
-        const enriched = cards.map((c, i) => ({
-          ...c,
-          id: hashQuestion(c.question),
-          sourcePageStart: epochNum * EPOCH_SIZE + 1,
-          sourcePageEnd: Math.min((epochNum + 1) * EPOCH_SIZE, 1595),
-          sourcePageImages: pageFiles,
-          extractedAt: new Date().toISOString(),
-          checkpointEpoch: epochNum
-        }));
-
-        resolve({ cards: enriched, epochNum, pageFiles });
-      } catch (e) {
-        reject(new Error(`Failed to parse epoch ${epochNum}: ${e.message}`));
-      }
-    });
-  });
-}
-
-function saveEpochCards(cards, epochNum) {
-  ensureDir(OUTPUT_DIR);
-  const filePath = `${OUTPUT_DIR}/epoch_${String(epochNum).padStart(3, '0')}.json`;
-  writeFileSync(filePath, JSON.stringify(cards, null, 2));
-  return filePath;
-}
-
-async function processEpoch(epochNum) {
-  try {
-    const result = await extractEpoch(epochNum);
-
-    if (result.skipped) {
-      return { status: 'skipped', epochNum };
+      activeTool = tool;
+      allCards.push(...cards);
+      chunkDone = true;
+      break;
     }
 
-    const filePath = saveEpochCards(result.cards, epochNum);
+    if (!chunkDone && rateLimitedTools.size === tools.length) {
+      throw new Error(`All tools rate-limited during epoch ${epochNum} chunk at page ${chunkStart + 1}`);
+    }
+  }
 
-    const checkpoint = loadCheckpoint();
-    checkpoint.lastCompletedEpoch = epochNum;
-    checkpoint.processedPages = (epochNum + 1) * EPOCH_SIZE;
-    checkpoint.extractedCards += result.cards.length;
-    saveCheckpoint(checkpoint);
+  const enriched = allCards.map(c => ({
+    ...c, id: hashQ(c.question),
+    sourcePageStart: epochNum * EPOCH_SIZE + 1,
+    sourcePageEnd: Math.min((epochNum + 1) * EPOCH_SIZE, 1595),
+    sourcePageImages: pageFiles,
+    extractedAt: new Date().toISOString(),
+    checkpointEpoch: epochNum
+  }));
 
-    return { status: 'success', epochNum, cardCount: result.cards.length, filePath };
+  return { cards: enriched, epochNum, pageFiles, tool: activeTool.name };
+}
+
+export async function processEpoch(epochNum, preferredTool = 'kilo') {
+  try {
+    const result = await extractEpoch(epochNum, preferredTool);
+    if (result.skipped) return { status: 'skipped', epochNum };
+
+    ensureDir(OUTPUT_DIR);
+    const filePath = `${OUTPUT_DIR}/epoch_${String(epochNum).padStart(3, '0')}.json`;
+    writeFileSync(filePath, JSON.stringify(result.cards, null, 2));
+
+    const cp = loadCheckpoint();
+    cp.lastCompletedEpoch = epochNum;
+    cp.processedPages = (epochNum + 1) * EPOCH_SIZE;
+    cp.extractedCards += result.cards.length;
+    saveCheckpoint(cp);
+
+    return { status: 'success', epochNum, cardCount: result.cards.length, filePath, tool: result.tool };
   } catch (e) {
     return { status: 'error', epochNum, error: e.message };
   }
 }
 
-export { extractEpoch, processEpoch, loadCheckpoint, saveCheckpoint, getEpochPages, EPOCH_SIZE };
+export { EPOCH_SIZE };

@@ -31,7 +31,7 @@ async function runExtractionPipeline() {
       if (result.status === 'success') {
         successCount++;
         totalCardsExtracted += result.cardCount;
-        log(`✓ Epoch ${epoch}: ${result.cardCount} cards extracted (file: ${result.filePath})`);
+        log(`✓ Epoch ${epoch}: ${result.cardCount} cards (tool: ${result.tool}, file: ${result.filePath})`);
       } else if (result.status === 'error') {
         errorCount++;
         log(`✗ Epoch ${epoch}: ERROR - ${result.error}`);
@@ -39,7 +39,6 @@ async function runExtractionPipeline() {
         log(`⊘ Epoch ${epoch}: skipped (already processed)`);
       }
 
-      // Allow brief pause between epochs
       await new Promise(r => setTimeout(r, 500));
     } catch (e) {
       errorCount++;
