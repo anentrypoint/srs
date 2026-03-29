@@ -1132,7 +1132,45 @@ function Config() {
     style: "font-size:1.125rem;font-weight:700;"
   }, Object.keys(loadStates()).length.toLocaleString()), /* @__PURE__ */ createElement("div", {
     class: "label-xs"
-  }, "States tracked"))))));
+  }, "States tracked")))), /* @__PURE__ */ createElement("div", {
+    style: "margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: "font-size:0.8125rem;",
+    onclick: () => {
+      const data = { states: loadStates(), cfg: loadCfg(), exportedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `srs-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+  }, "Export Progress"), /* @__PURE__ */ createElement("label", {
+    class: "btn-ghost",
+    style: "font-size:0.8125rem;cursor:pointer;"
+  }, "Import Progress", /* @__PURE__ */ createElement("input", {
+    type: "file",
+    accept: ".json",
+    style: "display:none;",
+    onchange: (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (!data.states || !data.cfg) { alert("Invalid backup file."); return; }
+          if (!confirm(`Restore backup from ${data.exportedAt ? new Date(data.exportedAt).toLocaleString() : "unknown date"}? This will overwrite your current progress.`)) return;
+          saveStates(data.states);
+          saveCfg(data.cfg);
+          alert("Progress restored. Reloading...");
+          location.reload();
+        } catch { alert("Failed to parse backup file."); }
+      };
+      reader.readAsText(file);
+    }
+  })))));
 }
 var SESSION_SIZE = 25;
 function buildPrompt(cards, cfg, sessionIndex = 0) {

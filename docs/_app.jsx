@@ -491,7 +491,7 @@ function Config() {
           </div>
         </div>
 
-        <div class="gcard" style="padding:1.25rem;">
+        <div class="gcard" style="padding:1.25rem;margin-bottom:16px;">
           <div style="font-size:0.8125rem;font-weight:600;margin-bottom:8px;">Data Storage</div>
           <div style="font-size:0.8125rem;color:var(--text2);line-height:1.6;margin-bottom:10px;">
             All SRS progress is stored in your browser's localStorage. No account or server required.
@@ -506,6 +506,41 @@ function Config() {
               <div style="font-size:1.125rem;font-weight:700;">{Object.keys(loadStates()).length.toLocaleString()}</div>
               <div class="label-xs">States tracked</div>
             </div>
+          </div>
+        </div>
+
+        <div class="gcard" style="padding:1.25rem;">
+          <div style="font-size:0.8125rem;font-weight:600;margin-bottom:12px;">Backup &amp; Restore</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn-ghost" style="justify-content:center;" onclick={() => {
+              const data = { states: loadStates(), cfg: loadCfg(), exportedAt: new Date().toISOString() };
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = `srs-backup-${new Date().toISOString().slice(0,10)}.json`;
+              a.click();
+              URL.revokeObjectURL(a.href);
+            }}>Export Progress (download JSON)</button>
+            <label class="btn-ghost" style="justify-content:center;cursor:pointer;text-align:center;">
+              Import Progress (restore from JSON)
+              <input type="file" accept=".json,application/json" style="display:none;" onchange={e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                  try {
+                    const data = JSON.parse(ev.target.result);
+                    if (!data.states && !data.cfg) { alert('Invalid backup file.'); return; }
+                    if (!confirm(`Restore backup from ${data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'unknown date'}?\n\nThis will overwrite your current progress.`)) return;
+                    if (data.states) saveStates(data.states);
+                    if (data.cfg) saveCfg(data.cfg);
+                    alert('Progress restored.');
+                    go('dashboard');
+                  } catch { alert('Failed to parse backup file.'); }
+                };
+                reader.readAsText(file);
+              }} />
+            </label>
           </div>
         </div>
       </div>
