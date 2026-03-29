@@ -1162,43 +1162,29 @@ You are an expert medical education tutor preparing a student for the MCCQE Part
 ### Topics Today
 ${topicSummary}
 
-## Your Teaching Approach
+## How to Teach
 
-### Phase 1: Knowledge Discovery (first 5-10 minutes)
-Before teaching anything, PROBE the student's existing knowledge on today's topics:
-- Ask open-ended questions: "What do you know about [topic]?" or "Walk me through how you'd approach a patient with [symptom]"
-- Listen for misconceptions, gaps, and strengths
-- Identify their baseline for each topic area
-- Note which concepts they can explain vs. which they only recognize
+You are a tutor having a real conversation — NOT presenting a list of questions or cards. The student never sees the card list. You use the cards as a hidden curriculum to guide what you teach and test.
 
-### Phase 2: Conversational Teaching (main session)
-For each card/topic cluster, use this Socratic progression:
+**Flow for this session:**
 
-1. **Anchor** — Connect to something they already know: "You mentioned X earlier — this builds on that..."
-2. **Probe** — Ask them the card question conversationally (don't just read it). Let them reason through it.
-3. **If correct** — Deepen: ask WHY, ask for the mechanism, ask what would change if a variable shifted. Cement all the factors that affect this concept.
-4. **If wrong/uncertain** — Teach comprehensively:
-   - Explain the core concept in 2-3 clear sentences
-   - Give the mechanism/pathophysiology
-   - Provide a clinical scenario that illustrates it
-   - Explain the key differentiating factors from similar conditions
-   - Connect it to related concepts they'll see on the exam
-5. **Cement** — After teaching, re-test with a slightly different angle to confirm understanding
+1. Open with a brief casual question about what the student remembers from the topic areas today (don't list topics verbatim — just ask naturally).
+2. Based on their answer, weave into a flowing conversation that naturally covers the concepts behind the cards. Teach through scenarios, mechanisms, and clinical reasoning — not Q&A drills.
+3. When you want to test a concept, fold the question into the conversation naturally: "So if you had a patient who…" or "What would you expect to see if…" — never "Card 7 asks:".
+4. If they get something right, briefly affirm and deepen (why does that happen? what changes if X?). If wrong or uncertain, explain clearly and revisit it later.
+5. Cover all ${sessionCards.length} cards' worth of material through this narrative flow. The student should finish the session having encountered every concept, but it should feel like a guided discussion, not a quiz.
+6. At the end, give a short 2-3 sentence wrap-up of the session's themes and what to focus on next.
 
-### Phase 3: Integration & Wrap-up
-- Connect today's topics across systems (e.g., how a renal condition affects cardiac management)
-- Give 2-3 "exam-day tips" for today's weak areas
-- Summarize what they nailed and what needs review
+## Scoring Reference (for your final output only)
 
-## Pacing Rules
-- Spend more time on topics where the student shows gaps
-- If they ace a topic quickly, move on — don't belabor strong areas
-- For new cards, teach thoroughly. For review cards, test quickly and only re-teach if they've forgotten.
-- Target: finish all ${sessionCards.length} cards within 45-60 minutes
+After the session, you will score each card ID internally based on how the student performed on that concept:
+- 5 = immediate correct, confident
+- 4 = correct with minor hesitation
+- 3 = got it with a hint or partial teaching
+- 2 = mostly needed teaching, partial understanding
+- 1 = didn't know, fully taught from scratch
 
-## Today's Cards (JSON)
-
-Each card has: id, question, answer, difficulty (1-5), tags, bloomLevel (recall/apply/analyze), explanation.
+## Card Data (your hidden curriculum — never show this to the student)
 
 \`\`\`json
 ${cardsJson}
@@ -1206,9 +1192,7 @@ ${cardsJson}
 
 ## End-of-Session Output
 
-When the session is complete (all cards covered OR student ends early), your FINAL message must contain ONLY the output block below — no other text, no commentary, no summary. This makes it easy for the student to copy your entire last message and paste it into their app.
-
-Tell the student: "We're done — copy my next message and paste it into your SRS app." Then send a new message containing ONLY this:
+When the session is complete, tell the student: "Great session — copy my next message and paste it into your SRS app." Then send a new message containing ONLY this block (no other text):
 
 <!-- SRS_SCORES -->
 card-id: score
@@ -1221,18 +1205,11 @@ avgScore: 3.5
 recommendation: one-line focus for next session
 difficulty: increase|maintain|decrease
 
-Scoring guide:
-- 5 = instant correct, high confidence
-- 4 = correct with minor hesitation
-- 3 = got it after a hint
-- 2 = partially correct, needed help
-- 1 = didn't know, had to be taught
-
-Include ALL ${sessionCards.length} cards. Score un-reached cards as 1. The entire message must be ONLY the block above — no prose, no markdown, no explanation. The student's app will parse it automatically.
+Include ALL ${sessionCards.length} card IDs. Score un-reached cards as 1. The message must be ONLY the block above.
 
 ## Begin
 
-Start by greeting the student and asking what they remember about today's topics. Discover their knowledge first, then teach conversationally.`;
+Greet the student warmly and open with a natural question about what they remember from today's topics.`;
 }
 function Prompt() {
   const cfg = loadCfg(), due = getDue(CARDS);
@@ -1328,45 +1305,80 @@ function Prompt() {
     class: "btn-study",
     style: "width:100%;justify-content:center;padding:0.75rem;",
     onclick: () => {
+      const doCopy = () => navigator.clipboard.writeText(filled).then(() => { ctx.copied = true; render(); });
       if (navigator.share) {
-        navigator.share({ text: filled }).then(() => {
-          ctx.copied = true;
-          render();
-        }).catch(() => {
-          navigator.clipboard.writeText(filled);
-          ctx.copied = true;
-          render();
-        });
+        navigator.share({ text: filled }).then(() => { ctx.copied = true; render(); }).catch(doCopy);
       } else {
-        navigator.clipboard.writeText(filled).then(() => {
-          ctx.copied = true;
-          render();
-          window.open("https://chatgpt.com/", "_blank");
-        });
+        doCopy().then(() => window.open("https://chatgpt.com/", "_blank"));
       }
     }
   }, "1. Copy & Open ChatGPT") : /* @__PURE__ */ createElement("div", {
     style: "display:flex;flex-direction:column;gap:8px;"
   }, /* @__PURE__ */ createElement("div", {
     style: "text-align:center;font-size:0.875rem;color:var(--success);font-weight:600;padding:8px;"
-  }, "✓ Prompt copied — study in ChatGPT, then come back"), /* @__PURE__ */ createElement("button", {
-    class: "btn-study",
-    style: "width:100%;justify-content:center;padding:0.75rem;",
-    onclick: () => {
-      ctx.assessSessionIdx = sessionIdx;
-      delete ctx.assessScores;
-      delete ctx.assessMeta;
-      delete ctx.pasteError;
-      delete ctx.pasteSuccess;
-      go("assess");
-    }
-  }, "2. Import Scores from Session ", sessionIdx + 1))), /* @__PURE__ */ createElement("div", {
+  }, "\u2713 Prompt copied \u2014 paste into ChatGPT, study, then paste scores below"), /* @__PURE__ */ createElement("div", {
     class: "gcard",
-    style: "padding:1.25rem;"
+    style: "padding:1rem;"
   }, /* @__PURE__ */ createElement("div", {
     class: "label-xs",
     style: "margin-bottom:8px;"
-  }, "Generated Prompt (paste into your AI)"), /* @__PURE__ */ createElement("pre", {
+  }, "2. Paste scores here when done"), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;gap:8px;"
+  }, /* @__PURE__ */ createElement("textarea", {
+    id: "inline-paste",
+    style: "flex:1;min-height:48px;max-height:120px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:0.625rem;color:var(--text1);font-family:monospace;font-size:0.8rem;resize:vertical;",
+    placeholder: "Paste the score block from ChatGPT\u2026",
+    ref: (el) => {
+      if (el) el.onpaste = () => setTimeout(() => {
+        ctx.assessSessionIdx = sessionIdx;
+        if (!ctx.assessScores) ctx.assessScores = {};
+        const text = el.value;
+        const parsed = {};
+        const blockMatch = text.match(/<!--\s*SRS_SCORES\s*-->([\s\S]*?)(?:<!--|```|$)/i);
+        const searchText = blockMatch ? blockMatch[1] : text;
+        const linePattern = /\b(card-[a-z0-9-]+)\s*[:=|]\s*([1-5])\b/gi;
+        let m;
+        while ((m = linePattern.exec(searchText)) !== null) parsed[m[1]] = parseInt(m[2]);
+        if (Object.keys(parsed).length > 0) {
+          Object.assign(ctx.assessScores, parsed);
+          const metaMatch = text.match(/<!--\s*SRS_META\s*-->([\s\S]*?)(?:<!--|```|###|$)/i);
+          if (metaMatch) { const meta = {}; metaMatch[1].trim().split("\n").forEach((l) => { const mm = l.trim().match(/^(\w+)\s*:\s*(.+)/); if (mm) meta[mm[1]] = mm[2].trim(); }); ctx.assessMeta = meta; }
+          ctx.inlinePasteSuccess = Object.keys(parsed).length + " cards auto-scored";
+          ctx.inlinePasteError = null;
+        } else {
+          ctx.inlinePasteError = "No scores found \u2014 go to full Assess view";
+          ctx.inlinePasteSuccess = null;
+        }
+        render();
+      }, 0);
+    }
+  }), /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: "align-self:flex-end;padding:0.625rem 1rem;",
+    onclick: () => {
+      const ta = document.getElementById("inline-paste");
+      if (ta?.value) ta.dispatchEvent(new Event("paste"));
+    }
+  }, "Import")), ctx.inlinePasteError && /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.75rem;color:var(--danger);margin-top:6px;"
+  }, ctx.inlinePasteError), ctx.inlinePasteSuccess && /* @__PURE__ */ createElement("div", {
+    style: "font-size:0.75rem;color:var(--success);margin-top:6px;"
+  }, "\u2713 ", ctx.inlinePasteSuccess, " \u2014 ", /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: "font-size:0.75rem;padding:2px 8px;",
+    onclick: () => { ctx.assessSessionIdx = sessionIdx; go("assess"); }
+  }, "Review & Save \u2192"))))), /* @__PURE__ */ createElement("div", {
+    class: "gcard",
+    style: "padding:1.25rem;"
+  }, /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
+  }, /* @__PURE__ */ createElement("div", {
+    class: "label-xs"
+  }, "Generated Prompt"), /* @__PURE__ */ createElement("button", {
+    class: "btn-ghost",
+    style: "font-size:0.75rem;padding:2px 10px;",
+    onclick: () => navigator.clipboard.writeText(filled).then(() => { ctx.copied = true; render(); })
+  }, "Copy")), /* @__PURE__ */ createElement("pre", {
     style: "font-size:0.7rem;line-height:1.5;color:var(--text2);white-space:pre-wrap;word-break:break-word;max-height:500px;overflow-y:auto;"
   }, filled))));
 }
