@@ -100,7 +100,7 @@ function Dashboard() {
   const projected = scored.length >= 5 ? recallRate * coverage + 0.5 * (1 - coverage) : 0.5;
   const gp = Math.round(projected * 100);
   // MCCQE1: <55% fail, 55-69% pass, ≥70% honours
-  const grades = [['Fail','<55%', Math.round(0.54 * 100)], ['Pass','55%', Math.round(0.55 * 100)], ['Honours','70%', Math.round(0.70 * 100)]];
+  const grades = [['Fail','<70%', Math.round(0.69 * 100)], ['Pass','70%', Math.round(0.70 * 100)], ['Honours','85%', Math.round(0.85 * 100)]];
 
   return (
     <div class="shell fade-in">

@@ -600,7 +600,7 @@ function Dashboard() {
   const coverage = stats.total ? stats.seen / stats.total : 0;
   const projected = scored.length >= 5 ? recallRate * coverage + 0.5 * (1 - coverage) : 0.5;
   const gp = Math.round(projected * 100);
-  const grades = [["Fail", "<55%", Math.round(0.54 * 100)], ["Pass", "55%", Math.round(0.55 * 100)], ["Honours", "70%", Math.round(0.7 * 100)]];
+  const grades = [["Fail", "<70%", Math.round(0.69 * 100)], ["Pass", "70%", Math.round(0.70 * 100)], ["Honours", "85%", Math.round(0.85 * 100)]];
   return /* @__PURE__ */ createElement("div", {
     class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
