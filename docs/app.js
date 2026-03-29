@@ -593,9 +593,14 @@ function Loading() {
 }
 function Dashboard() {
   const cfg = loadCfg(), stats = getStats(CARDS), dr = daysLeft(cfg);
-  const gp = Math.round(Math.max(0, Math.min(100, (stats.avgEF - 1.3) / (2.5 - 1.3) * 100)));
-  const pct = (v) => Math.round(Math.max(0, Math.min(100, (v - 1.3) / (2.5 - 1.3) * 100)));
-  const grades = [["Fail", "1.3", pct(1.3)], ["Pass", "2.0", pct(2)], ["Honours", "2.5", pct(2.5)]];
+  const states = loadStates();
+  const scored = CARDS.filter((c) => states[c.id]?.lastScore != null);
+  const correct = scored.filter((c) => states[c.id].lastScore >= 3).length;
+  const recallRate = scored.length ? correct / scored.length : 0.5;
+  const coverage = stats.total ? stats.seen / stats.total : 0;
+  const projected = scored.length >= 5 ? recallRate * coverage + 0.5 * (1 - coverage) : 0.5;
+  const gp = Math.round(projected * 100);
+  const grades = [["Fail", "<55%", Math.round(0.54 * 100)], ["Pass", "55%", Math.round(0.55 * 100)], ["Honours", "70%", Math.round(0.7 * 100)]];
   return /* @__PURE__ */ createElement("div", {
     class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
@@ -644,9 +649,9 @@ function Dashboard() {
     style: "display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;"
   }, /* @__PURE__ */ createElement("span", {
     style: "font-weight:600;font-size:0.9375rem;"
-  }, "Grade Progress"), /* @__PURE__ */ createElement("span", {
+  }, "Grade Prediction"), /* @__PURE__ */ createElement("span", {
     style: "font-size:0.8125rem;color:var(--text2);"
-  }, "EF ", stats.avgEF.toFixed(2), " / 2.50")), /* @__PURE__ */ createElement("div", {
+  }, gp + "% projected (" + scored.length + " scored)")), /* @__PURE__ */ createElement("div", {
     class: "prog-track",
     style: "margin-bottom:10px;"
   }, /* @__PURE__ */ createElement("div", {

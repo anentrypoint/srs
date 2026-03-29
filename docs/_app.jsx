@@ -90,9 +90,17 @@ function Loading() {
 
 function Dashboard() {
   const cfg = loadCfg(), stats = getStats(CARDS), dr = daysLeft(cfg);
-  const gp = Math.round(Math.max(0, Math.min(100, (stats.avgEF - 1.3) / (2.5 - 1.3) * 100)));
-  const pct = v => Math.round(Math.max(0, Math.min(100, (v - 1.3) / (2.5 - 1.3) * 100)));
-  const grades = [['Fail','1.3', pct(1.3)], ['Pass','2.0', pct(2.0)], ['Honours','2.5', pct(2.5)]];
+  const states = loadStates();
+  // Recall-based grade prediction
+  const scored = CARDS.filter(c => states[c.id]?.lastScore != null);
+  const correct = scored.filter(c => states[c.id].lastScore >= 3).length;
+  const recallRate = scored.length ? correct / scored.length : 0.5;
+  const coverage = stats.total ? stats.seen / stats.total : 0;
+  // Unseen cards weighted at 50% (unknown); blend with observed recall
+  const projected = scored.length >= 5 ? recallRate * coverage + 0.5 * (1 - coverage) : 0.5;
+  const gp = Math.round(projected * 100);
+  // MCCQE1: <55% fail, 55-69% pass, ≥70% honours
+  const grades = [['Fail','<55%', Math.round(0.54 * 100)], ['Pass','55%', Math.round(0.55 * 100)], ['Honours','70%', Math.round(0.70 * 100)]];
 
   return (
     <div class="shell fade-in">
@@ -131,8 +139,8 @@ function Dashboard() {
         {/* grade progress */}
         <div class="gcard" style="padding:1.25rem 1.5rem;margin-bottom:20px;">
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
-            <span style="font-weight:600;font-size:0.9375rem;">Grade Progress</span>
-            <span style="font-size:0.8125rem;color:var(--text2);">EF {stats.avgEF.toFixed(2)} / 2.50</span>
+            <span style="font-weight:600;font-size:0.9375rem;">Grade Prediction</span>
+            <span style="font-size:0.8125rem;color:var(--text2);">{gp}% projected ({scored.length} scored)</span>
           </div>
           <div class="prog-track" style="margin-bottom:10px;">
             <div class="prog-fill" style={'width:' + Math.max(gp, 1) + '%'}></div>
