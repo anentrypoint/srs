@@ -4,7 +4,7 @@ const EXAM_DATE = new Date('2026-06-15');
 const COMPLETION_DEADLINE = new Date('2026-06-01');
 const SAFETY_BUFFER_PERCENT = 0.10; // 5% for 95% target + 5% extra safety
 
-function getStudyPlan(totalCards = 1500) {
+function getStudyPlan(totalCards = 16560) {
   const today = new Date();
   const daysAvailable = Math.floor((COMPLETION_DEADLINE - today) / (1000 * 60 * 60 * 24));
 
