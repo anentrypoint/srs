@@ -139,17 +139,17 @@ function Dashboard() {
         {/* grade progress */}
         <div class="gcard" style="padding:1.25rem 1.5rem;margin-bottom:20px;">
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
-            <span style="font-weight:600;font-size:0.9375rem;">Grade Prediction</span>
+            <span style="font-weight:600;font-size:0.9375rem;">Progress to Honours</span>
             <span style="font-size:0.8125rem;color:var(--text2);">{gp}% projected ({scored.length} scored)</span>
           </div>
           <div class="prog-track" style="margin-bottom:10px;">
-            <div class="prog-fill" style={'width:' + Math.max(gp, 1) + '%'}></div>
+            <div class="prog-fill" style={'width:' + Math.min(100, Math.max(Math.round(gp / 85 * 100), 1)) + '%'}></div>
           </div>
           <div style="display:flex;justify-content:space-between;">
             {grades.map(([label, val, pos]) =>
               <div style="text-align:center;">
                 <div style="font-size:0.75rem;font-weight:600;color:var(--text2);">{val}</div>
-                <div style={'font-size:0.6875rem;color:' + (pos <= gp ? 'var(--accent)' : 'var(--text3)') + ';text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;'}>{label}</div>
+                <div style={'font-size:0.6875rem;color:' + (gp >= pos ? 'var(--accent)' : 'var(--text3)') + ';text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;'}>{label}</div>
               </div>
             )}
           </div>

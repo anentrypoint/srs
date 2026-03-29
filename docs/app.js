@@ -649,14 +649,14 @@ function Dashboard() {
     style: "display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;"
   }, /* @__PURE__ */ createElement("span", {
     style: "font-weight:600;font-size:0.9375rem;"
-  }, "Grade Prediction"), /* @__PURE__ */ createElement("span", {
+  }, "Progress to Honours"), /* @__PURE__ */ createElement("span", {
     style: "font-size:0.8125rem;color:var(--text2);"
   }, gp + "% projected (" + scored.length + " scored)")), /* @__PURE__ */ createElement("div", {
     class: "prog-track",
     style: "margin-bottom:10px;"
   }, /* @__PURE__ */ createElement("div", {
     class: "prog-fill",
-    style: "width:" + Math.max(gp, 1) + "%"
+    style: "width:" + Math.min(100, Math.max(Math.round(gp / 85 * 100), 1)) + "%"
   })), /* @__PURE__ */ createElement("div", {
     style: "display:flex;justify-content:space-between;"
   }, grades.map(([label, val, pos]) => /* @__PURE__ */ createElement("div", {
@@ -664,7 +664,7 @@ function Dashboard() {
   }, /* @__PURE__ */ createElement("div", {
     style: "font-size:0.75rem;font-weight:600;color:var(--text2);"
   }, val), /* @__PURE__ */ createElement("div", {
-    style: "font-size:0.6875rem;color:" + (pos <= gp ? "var(--accent)" : "var(--text3)") + ";text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;"
+    style: "font-size:0.6875rem;color:" + (gp >= pos ? "var(--accent)" : "var(--text3)") + ";text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;"
   }, label))))), cfg.examDate && /* @__PURE__ */ createElement("div", {
     style: "display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:12px;"
   }, /* @__PURE__ */ createElement("svg", {
