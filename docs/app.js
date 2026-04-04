@@ -1178,9 +1178,9 @@ function Config() {
   })))));
 }
 var SESSION_SIZE = 25;
-function buildPrompt(cards, cfg, sessionIndex = 0) {
+function buildPrompt(cards, cfg, sessionIndex = 0, orderedDue = null) {
   const states = loadStates();
-  const due = getDue(cards);
+  const due = orderedDue || getDue(cards);
   const dr = daysLeft(cfg);
   const { perDay, auto } = calcNewPerDay(cards, states, cfg);
   const reviews = due.filter((c) => isSeen(states, c.id));
@@ -1255,15 +1255,22 @@ Include ALL ${sessionCards.length} card IDs. Score un-reached cards as 1. The me
 Greet the student warmly and open with a natural question about what they remember from today's topics.`;
 }
 function Prompt() {
-  const cfg = loadCfg(), due = getDue(CARDS);
+  const cfg = loadCfg(), rawDue = getDue(CARDS);
   const states = loadStates();
   const dr = daysLeft(cfg);
   const { perDay } = calcNewPerDay(CARDS, states, cfg);
+  const shuffle = ctx.shuffle || false;
+  if (shuffle && !ctx.shuffledDue) {
+    const arr = rawDue.slice();
+    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    ctx.shuffledDue = arr;
+  }
+  const due = shuffle ? ctx.shuffledDue : rawDue;
   const reviews = due.filter((c) => isSeen(states, c.id));
   const newCards = due.filter((c) => !isSeen(states, c.id));
   const totalSessions = Math.ceil(due.length / SESSION_SIZE);
   const sessionIdx = ctx.sessionIdx || 0;
-  const filled = buildPrompt(CARDS, cfg, sessionIdx);
+  const filled = buildPrompt(CARDS, cfg, sessionIdx, due);
   return /* @__PURE__ */ createElement("div", {
     class: "shell fade-in"
   }, /* @__PURE__ */ createElement("div", {
@@ -1343,6 +1350,20 @@ function Prompt() {
       render();
     }
   }, "Next →")), /* @__PURE__ */ createElement("div", {
+    style: "display:flex;align-items:center;gap:8px;margin-bottom:12px;"
+  }, /* @__PURE__ */ createElement("button", {
+    class: shuffle ? "btn-study" : "btn-ghost",
+    style: "font-size:0.8rem;padding:6px 12px;",
+    onclick: () => {
+      ctx.shuffle = !shuffle;
+      ctx.shuffledDue = null;
+      ctx.sessionIdx = 0;
+      ctx.copied = false;
+      render();
+    }
+  }, shuffle ? "\u{1F500} Shuffled" : "\u{1F500} Shuffle"), /* @__PURE__ */ createElement("span", {
+    style: "font-size:0.75rem;color:var(--text3);"
+  }, shuffle ? "Cards in random order" : "Cards in book order")), /* @__PURE__ */ createElement("div", {
     style: "display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"
   }, !ctx.copied ? /* @__PURE__ */ createElement("button", {
     class: "btn-study",
